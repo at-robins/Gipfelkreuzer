@@ -87,6 +87,18 @@ impl AsRef<ApplicationError> for ApplicationError {
 
 impl From<std::io::Error> for ApplicationError {
     fn from(error: std::io::Error) -> Self {
+        Self::new(ApplicationErrorType::IOError, error)
+    }
+}
+
+impl From<log::SetLoggerError> for ApplicationError {
+    fn from(error: log::SetLoggerError) -> Self {
+        Self::new(ApplicationErrorType::InternalError, error)
+    }
+}
+
+impl From<clap::Error> for ApplicationError {
+    fn from(error: clap::Error) -> Self {
         Self::new(ApplicationErrorType::InternalError, error)
     }
 }
