@@ -31,3 +31,4 @@ fn main_internal() -> Result<(), ApplicationError> {
 
 mod arguments;
 mod error;
+mod peaks;

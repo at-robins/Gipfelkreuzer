@@ -1,3 +1,5 @@
+//! This module defines command line arguments.
+
 use clap::Parser;
 use getset::{CopyGetters, Getters};
 use log::LevelFilter;

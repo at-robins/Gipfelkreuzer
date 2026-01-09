@@ -1,4 +1,4 @@
-//! The `error` module defines specific error types.
+//! This module defines specific error types.
 
 use getset::{CopyGetters, Getters};
 use log::error;
@@ -22,6 +22,8 @@ pub enum ApplicationErrorType {
     InternalError,
     /// An input or output related error.
     IOError,
+    /// Input data error.
+    InputDataError,
 }
 
 impl std::fmt::Display for ApplicationErrorType {
@@ -29,6 +31,7 @@ impl std::fmt::Display for ApplicationErrorType {
         let name = match self {
             ApplicationErrorType::InternalError => "Generic internal error",
             ApplicationErrorType::IOError => "IO error",
+            ApplicationErrorType::InputDataError => "Invalid input data",
         };
         write!(f, "{}", name)
     }
