@@ -106,6 +106,12 @@ impl From<clap::Error> for ApplicationError {
     }
 }
 
+impl From<core::num::ParseIntError> for ApplicationError {
+    fn from(error: core::num::ParseIntError) -> Self {
+        Self::new(ApplicationErrorType::InternalError, error)
+    }
+}
+
 /// A logger for a specific [`SeqError`].
 pub struct ApplicationErrorLogger {
     message: String,
