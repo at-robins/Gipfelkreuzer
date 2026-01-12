@@ -46,10 +46,15 @@ fn main_internal() -> Result<(), ApplicationError> {
         .into_iter()
         .map(|(chromosome, peaks)| (chromosome, PeakMerger::new(peaks).consensus_peaks()))
         .collect();
-    write_peaks_to_bed(command_line_arguments.output_file(), &consenus).map_err(|err| {
+    write_peaks_to_bed(
+        command_line_arguments.output_file(),
+        &consenus,
+        command_line_arguments.bed_output_columns(),
+    )
+    .map_err(|err| {
         err.chain(format!(
             "Failed to write the consensus peaks to output file \"{}\".",
-            command_line_arguments.input_file().display()
+            command_line_arguments.input_file().display(),
         ))
     })?;
     Ok(())
@@ -60,3 +65,6 @@ mod error;
 mod input;
 mod output;
 mod peaks;
+
+#[cfg(test)]
+mod test_utils;
