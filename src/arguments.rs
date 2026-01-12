@@ -21,6 +21,10 @@ pub struct CommandLineArguments {
     #[arg(short, long, default_value_t = LevelFilter::Warn)]
     #[getset(get_copy = "pub")]
     log_level: LevelFilter,
+    /// The number of fields / columns to output [minimum to generate a valid BED file: 3]
+    #[arg(short, long, default_value_t = 4)]
+    #[getset(get_copy = "pub")]
+    bed_output_columns: usize,
 }
 impl CommandLineArguments {
     /// Returns the output directory.
