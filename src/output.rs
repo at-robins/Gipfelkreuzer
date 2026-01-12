@@ -27,7 +27,7 @@ pub fn peak_to_bed_record_line(peak: &PeakData, chromosome: &str, fields: usize)
             // End
             2 => bed_record.push_str(&peak.end().to_string()),
             // Name
-            3 => bed_record.push_str(&peak.id().to_string()),
+            3 => bed_record.push_str(&format!("consensus_{}", peak.id())),
             // Strand
             5 => bed_record.push('.'),
             9 => bed_record.push_str(&peak.summit().to_string()),
