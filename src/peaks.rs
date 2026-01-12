@@ -1,10 +1,6 @@
 //! This module defines operations on genomic peak data.
 
-use std::cmp::{max, min};
-
-use crate::{
-    error::{ApplicationError, ApplicationErrorType},
-};
+use crate::error::{ApplicationError, ApplicationErrorType};
 use getset::{CopyGetters, Getters};
 
 #[derive(CopyGetters, Clone, Copy, PartialEq, Eq, Debug)]
@@ -132,28 +128,31 @@ impl PeakBin {
         }
     }
 
-    pub fn sort_by_length(&mut self) {
-        self.peaks.sort_by(|a, b| a.length().cmp(&b.length()));
-    }
-
-    /// Merges this and another peak bin.
+    /// Converts the peak bin into its respective consensus peaks.
     ///
     /// # Parameters
     ///
-    /// * `other` - the other peak bin to merge with
-    fn merge(mut self, other: PeakBin) -> Self {
-        self.peaks.extend(other.peaks);
-        Self {
-            start: min(self.start, other.start),
-            end: max(self.end, other.end),
-            peaks: self.peaks,
+    /// * `max_iterations` - the maximum number of peak merging iterations to be performed
+    fn consensus_peaks(self, max_iterations: usize) -> Vec<PeakData> {
+        let mut consensus = Self::consensus_peaks_internal(self.peaks);
+        // Iterativesly merges peaks until the maximum number of iterations is reached
+        // or the peaks do not change anymore.
+        let previous_consensus_length = consensus.len();
+        for _ in 0..max_iterations {
+            consensus = Self::consensus_peaks_internal(consensus);
+            if consensus.len() == previous_consensus_length {
+                break;
+            }
         }
+        consensus
     }
 
-    fn consensus_peaks(mut self) -> Vec<PeakData> {
+    /// Converts the peak bin into its respective consensus peaks.
+    /// Internal function logic to allow easy iterative consensus peak generation.
+    fn consensus_peaks_internal(mut peaks: Vec<PeakData>) -> Vec<PeakData> {
         let mut consensus_peaks = Vec::new();
-        self.sort_by_length();
-        let mut remaining_peaks = self.peaks;
+        peaks.sort_by(|a, b| a.length().cmp(&b.length()));
+        let mut remaining_peaks = peaks;
         while !remaining_peaks.is_empty() {
             let mut consensus_peak_aggregator: Option<ConsensusPeakAggregator> = None;
             let mut retained_peaks = Vec::with_capacity(remaining_peaks.len());
@@ -285,7 +284,7 @@ impl PeakMerger {
     pub fn consensus_peaks(self) -> Vec<PeakData> {
         let mut consensus_peaks = Vec::new();
         for bin in self.bins {
-            consensus_peaks.extend(bin.consensus_peaks());
+            consensus_peaks.extend(bin.consensus_peaks(100));
         }
         consensus_peaks
     }
