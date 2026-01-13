@@ -61,7 +61,13 @@ fn main_internal() -> Result<(), ApplicationError> {
     })?;
     let consenus: HashMap<String, Vec<PeakData>> = peaks_by_chromosome
         .into_iter()
-        .map(|(chromosome, peaks)| (chromosome, PeakMerger::new(peaks).consensus_peaks()))
+        .map(|(chromosome, peaks)| {
+            (
+                chromosome,
+                PeakMerger::new(peaks)
+                    .consensus_peaks(command_line_arguments.max_merge_iterations()),
+            )
+        })
         .collect();
     write_peaks_to_bed(
         command_line_arguments.output_file(),

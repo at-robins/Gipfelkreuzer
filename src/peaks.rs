@@ -281,10 +281,10 @@ impl PeakMerger {
         Self { bins }
     }
 
-    pub fn consensus_peaks(self) -> Vec<PeakData> {
+    pub fn consensus_peaks(self, max_iterations: usize) -> Vec<PeakData> {
         let mut consensus_peaks = Vec::new();
         for bin in self.bins {
-            consensus_peaks.extend(bin.consensus_peaks(100));
+            consensus_peaks.extend(bin.consensus_peaks(max_iterations));
         }
         consensus_peaks
     }
