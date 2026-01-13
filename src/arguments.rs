@@ -17,14 +17,23 @@ pub struct CommandLineArguments {
     /// The output file path [default: the input file path with the suffix "_consensus_peaks.bed"]
     #[arg(short, long)]
     output_file: Option<PathBuf>,
-    /// The logging level [possible values: TRACE, DEBUG, INFO, WARN, ERROR]
+    /// The logging level. Extensive logging might slow down software execution [possible values: TRACE, DEBUG, INFO, WARN, ERROR]
     #[arg(short, long, default_value_t = LevelFilter::Warn)]
     #[getset(get_copy = "pub")]
     log_level: LevelFilter,
-    /// The number of fields / columns to output [minimum to generate a valid BED file: 3]
+    /// The number of fields / columns to output. If 10 or more columns are specified,
+    /// column 10 is filled with the consensus peak offset information [minimum to generate a valid BED file: 3]
     #[arg(short, long, default_value_t = 4)]
     #[getset(get_copy = "pub")]
     bed_output_columns: usize,
+    /// The maximum number of consensus peak merging iterations.
+    /// A value of "0" means consensus peaks are only called once and not
+    /// iteratively merged. This will yield the highest sensitivity, but
+    /// also poteintially result in multiple slight variations of the same peaks
+    /// being present in the output.
+    #[arg(short, long, default_value_t = 20)]
+    #[getset(get_copy = "pub")]
+    max_merge_iterations: usize,
 }
 impl CommandLineArguments {
     /// Returns the output directory.
