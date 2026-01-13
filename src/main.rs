@@ -20,9 +20,26 @@ fn main() -> Result<(), ApplicationError> {
 
 fn main_internal() -> Result<(), ApplicationError> {
     // Tries to parse the command line arguments.
-    let cl_args_result = CommandLineArguments::try_parse().map_err(|err| {
-        ApplicationError::from(err).chain("The command line arguments could not be parsed.")
-    });
+    let cl_args_result = match CommandLineArguments::try_parse() {
+        Ok(cl_args) => Ok(cl_args),
+        Err(err) => {
+            match err.kind() {
+                // Returns successful after the help message has been printed
+                // or an error if the printing failed.
+                clap::error::ErrorKind::DisplayHelp | clap::error::ErrorKind::DisplayVersion => {
+                    if let Err(err) = err.print() {
+                        Err(ApplicationError::from(err)
+                            .chain("The command line arguments could not be parsed."))
+                    } else {
+                        return Ok(());
+                    }
+                },
+                // On an actual error, returns the error.
+                _ => Err(ApplicationError::from(err)
+                    .chain("The command line arguments could not be parsed.")),
+            }
+        },
+    };
     // In case of an error sets a default log level to allow logging of the error.
     let log_level = cl_args_result
         .as_ref()
