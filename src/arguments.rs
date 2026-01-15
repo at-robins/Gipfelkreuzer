@@ -10,8 +10,9 @@ use log::LevelFilter;
 #[derive(Parser, CopyGetters, Getters, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct CommandLineArguments {
-    /// The path to the GA4GH BED v1.0 complient input peak file.
-    /// The peak summit offset from the start is expected at column 10.
+    /// The path to the GA4GH BED v1.0 complient BED3+ input peak file.
+    /// The peak summit offset from the start is expected at column 10
+    /// as defined in the narrowPeak file format definition.
     #[getset(get = "pub")]
     input_file: PathBuf,
     /// The output file path [default: the input file path with the suffix "_consensus_peaks.bed"]
@@ -22,7 +23,7 @@ pub struct CommandLineArguments {
     #[getset(get_copy = "pub")]
     log_level: LevelFilter,
     /// The number of fields / columns to output. If 10 or more columns are specified,
-    /// column 10 is filled with the consensus peak offset information [minimum to generate a valid BED file: 3]
+    /// column 10 is filled with the consensus peak coordinate [minimum to generate a valid BED file: 3]
     #[arg(short, long, default_value_t = 4)]
     #[getset(get_copy = "pub")]
     bed_output_columns: usize,

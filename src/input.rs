@@ -9,7 +9,13 @@ use std::{
 
 use crate::{error::ApplicationError, peaks::PeakData};
 
-/// Parses BED files according to the [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) definition.
+/// Parses BED3+ files according to the [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) definition.
+/// Peak summit information will be extracted from field 10 according to the
+/// [narrowPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format12) fromat definition if present and possible.
+///
+/// # Parameters
+///
+/// * `path` - the input file path
 pub fn bed_to_peaks<T: AsRef<Path>>(
     path: T,
 ) -> Result<HashMap<String, Vec<PeakData>>, ApplicationError> {
@@ -72,7 +78,15 @@ pub fn bed_to_peaks<T: AsRef<Path>>(
                     path.as_ref().display()
                 ))
             })?;
-            let summit = if let Some(summit_field) = fields.get(9) {
+            let summit = if let Some(summit_field) = fields.get(9).and_then(|field_value| {
+                // "-1" indicates missing peak summit information according to the narrowPeak format definition, 
+                // so parsing should be skipped.
+                if *field_value == "-1" {
+                    None
+                } else {
+                    Some(field_value)
+                }
+            }) {
                 let summit_offset: u64 = summit_field.parse().map_err(|err| {
                     ApplicationError::from(err).chain(format!(
                         "Value \"{}\" at line {} of file \"{}\" could \
