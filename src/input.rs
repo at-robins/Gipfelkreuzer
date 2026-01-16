@@ -79,7 +79,7 @@ pub fn bed_to_peaks<T: AsRef<Path>>(
                 ))
             })?;
             let summit = if let Some(summit_field) = fields.get(9).and_then(|field_value| {
-                // "-1" indicates missing peak summit information according to the narrowPeak format definition, 
+                // "-1" indicates missing peak summit information according to the narrowPeak format definition,
                 // so parsing should be skipped.
                 if *field_value == "-1" {
                     None
@@ -121,4 +121,257 @@ pub fn bed_to_peaks<T: AsRef<Path>>(
         }
     }
     Ok(peak_map)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::test_utils::test_resources;
+
+    use super::*;
+
+    #[test]
+    fn test_bed_to_peaks() {
+        let peaks =
+            bed_to_peaks(test_resources().join("input_test_valid_with_summit.narrowPeak")).unwrap();
+        assert_eq!(peaks.len(), 2);
+        assert_eq!(peaks["chr1"].len(), 4);
+        assert_eq!(peaks["chr2"].len(), 2);
+        let expected_peaks_1 = vec![
+            PeakData::new(0, 4470246u64, 4470509u64, 4470246u64 + 107u64).unwrap(),
+            PeakData::new(1, 4496298u64, 4496749u64, 4496298u64 + 278u64).unwrap(),
+            PeakData::new(2, 4547437u64, 4547657u64, 4547437u64 + 95u64).unwrap(),
+            PeakData::new(3, 4671575u64, 4671768u64, 4671575u64 + 78u64).unwrap(),
+        ];
+        for expected_peak in expected_peaks_1 {
+            assert!(
+                peaks["chr1"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr1"]
+            );
+        }
+
+        let expected_peaks_2 = vec![
+            PeakData::new(4, 4747858u64, 4748017u64, 4747858u64 + 96u64).unwrap(),
+            PeakData::new(5, 4748160u64, 4748522u64, 4748160u64 + 186u64).unwrap(),
+        ];
+        for expected_peak in expected_peaks_2 {
+            assert!(
+                peaks["chr2"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr2"]
+            );
+        }
+    }
+
+    #[test]
+    fn test_bed_to_peaks_minimal() {
+        let peaks =
+            bed_to_peaks(test_resources().join("input_test_valid_minimal.narrowPeak")).unwrap();
+        assert_eq!(peaks.len(), 2);
+        assert_eq!(peaks["chr1"].len(), 4);
+        assert_eq!(peaks["chr2"].len(), 2);
+        let expected_peaks_1 = vec![
+            PeakData::new(0, 4470246u64, 4470509u64, (4470246u64 + 4470509u64) / 2).unwrap(),
+            PeakData::new(1, 4496298u64, 4496749u64, (4496298u64 + 4496749u64) / 2).unwrap(),
+            PeakData::new(2, 4547437u64, 4547657u64, (4547437u64 + 4547657u64) / 2).unwrap(),
+            PeakData::new(3, 4671575u64, 4671768u64, (4671575u64 + 4671768u64) / 2).unwrap(),
+        ];
+        for expected_peak in expected_peaks_1 {
+            assert!(
+                peaks["chr1"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr1"]
+            );
+        }
+
+        let expected_peaks_2 = vec![
+            PeakData::new(4, 4747858u64, 4748017u64, (4747858u64 + 4748017u64) / 2).unwrap(),
+            PeakData::new(5, 4748160u64, 4748522u64, (4748160u64 + 4748522u64) / 2).unwrap(),
+        ];
+        for expected_peak in expected_peaks_2 {
+            assert!(
+                peaks["chr2"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr2"]
+            );
+        }
+    }
+
+    #[test]
+    fn test_bed_to_peaks_additional_format_specifications() {
+        let peaks = bed_to_peaks(
+            test_resources().join("input_test_valid_with_summit_additional_features.narrowPeak"),
+        )
+        .unwrap();
+        assert_eq!(peaks.len(), 2);
+        assert_eq!(peaks["chr1"].len(), 4);
+        assert_eq!(peaks["chr2"].len(), 2);
+
+        let expected_peaks_1 = vec![
+            PeakData::new(0, 4470246u64, 4470509u64, 4470246u64 + 107u64).unwrap(),
+            PeakData::new(1, 4496298u64, 4496749u64, 4496298u64 + 278u64).unwrap(),
+            PeakData::new(2, 4547437u64, 4547657u64, 4547437u64 + 95u64).unwrap(),
+            PeakData::new(4, 4671575u64, 4671768u64, 4671575u64 + 78u64).unwrap(),
+        ];
+        for expected_peak in expected_peaks_1 {
+            assert!(
+                peaks["chr1"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr1"]
+            );
+        }
+
+        let expected_peaks_2 = vec![
+            PeakData::new(8, 4747858u64, 4748017u64, 4747858u64 + 96u64).unwrap(),
+            PeakData::new(9, 4748160u64, 4748522u64, (4748160u64 + 4748522u64) / 2).unwrap(),
+        ];
+        for expected_peak in expected_peaks_2 {
+            assert!(
+                peaks["chr2"].contains(&expected_peak),
+                "Expected peak {:?} in {:?}..",
+                expected_peak,
+                peaks["chr2"]
+            );
+        }
+    }
+
+    #[test]
+    fn test_bed_to_peaks_file_does_not_exist() {
+        let expected_error_message_content = "could not be opened.";
+        let error = bed_to_peaks(test_resources().join("file_does_not_exist.error")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_encoding() {
+        let expected_error_message_content = "Failed to parse line";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_utf8.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_start() {
+        let expected_error_message_content = "could not be parsed as genomic start coordinates.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_start.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_end() {
+        let expected_error_message_content = "could not be parsed as genomic end coordinates.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_end.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_summit() {
+        let expected_error_message_content = "could not be parsed as peak summit coordinates.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_summit.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_fields() {
+        let expected_error_message_content = "does not contain the minimally required records.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_not_enough_fields.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_data_start_end() {
+        let expected_error_message_content = "contains invalid data.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_data_start_end.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
+
+    #[test]
+    fn test_bed_to_peaks_invalid_data_summit() {
+        let expected_error_message_content = "contains invalid data.";
+        let error =
+            bed_to_peaks(test_resources().join("input_test_invalid_data_summit.narrowPeak")).unwrap_err();
+        assert!(
+            error
+                .internal_messages()
+                .last()
+                .unwrap()
+                .contains(expected_error_message_content),
+            "The error {:?} did not contain the expected content \"{}\".",
+            error,
+            expected_error_message_content
+        );
+    }
 }
