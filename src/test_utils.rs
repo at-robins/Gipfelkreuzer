@@ -6,3 +6,10 @@ use std::path::PathBuf;
 pub fn test_resources() -> PathBuf {
     "./test_resources".into()
 }
+
+/// Returns the directory to use for test output.
+pub fn test_output() -> PathBuf {
+    let mut path = test_resources();
+    path.push("tmp");
+    path
+}
