@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="128.37349mm"
-   height="126.02101mm"
-   viewBox="0 0 128.37349 126.02101"
+   width="50mm"
+   height="49.083733mm"
+   viewBox="0 0 50 49.083732"
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
@@ -26,8 +26,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.85198632"
-     inkscape:cx="171.36425"
-     inkscape:cy="247.06969"
+     inkscape:cx="166.66934"
+     inkscape:cy="248.24342"
      inkscape:window-width="1920"
      inkscape:window-height="1052"
      inkscape:window-x="0"
@@ -148,7 +148,7 @@
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-34.628905,-36.979014)">
+     transform="matrix(0.3894885,0,0,0.3894885,-13.48756,-14.402901)">
     <path
        style="display:none;fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
        d="M 140,110 110,70 90,100 70,90 40,110 c -6.192828,4.12855 -4.579403,-71.480811 60,-70 39.05462,0.895526 59.76387,31.863499 60,60 0.30909,36.83063 -29.05025,59.96579 -60,60 -31.713902,0.0351 -27.714469,-35.53711 -60,-30"
