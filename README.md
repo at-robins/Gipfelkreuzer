@@ -37,4 +37,4 @@ Gipfelkreuzer --help
 
 # Cite
 
-Schenk, R. P., & Wiedemann, G. M. (2026). Gipfelkreuzer: Automated consensus peak generation (0.1). [https://github.com/at-robins/espe](https://github.com/at-robins/espe)
+Schenk, R. P., & Wiedemann, G. M. (2026). Gipfelkreuzer: Automated consensus peak generation (0.1). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)
