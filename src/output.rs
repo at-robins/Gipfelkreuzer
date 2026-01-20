@@ -180,7 +180,8 @@ mod tests {
     fn test_write_peaks_to_bed_4_fields() {
         let n_fields = 4;
         let mut output_path = test_output();
-        std::fs::create_dir_all(&output_path).unwrap();
+        output_path.push("subfolder_that_should_not_exist_yet");
+        assert!(!output_path.exists());
         output_path.push("test_write_peaks_to_bed_4_fields.bed");
         let mut peaks = HashMap::new();
         peaks.insert("chr1".to_string(), vec![PeakData::new(0, 45u64, 98u64, 55u64).unwrap()]);
@@ -191,6 +192,7 @@ mod tests {
             vec![PeakData::new(109, 4568u64, 9786u64, 5573u64).unwrap()],
         );
         write_peaks_to_bed(&output_path, &peaks, n_fields).unwrap();
+        assert!(output_path.parent().unwrap().exists());
         let output_file = BufReader::new(File::open(&output_path).unwrap());
         let expected_output_lines: Vec<String> = peaks
             .iter()
@@ -209,14 +211,13 @@ mod tests {
                 expected_output_lines
             )
         }
-        std::fs::remove_file(output_path).unwrap();
+        std::fs::remove_dir_all(output_path.parent().unwrap()).unwrap();
     }
 
     #[test]
     fn test_write_peaks_to_bed_42_fields() {
         let n_fields = 42;
         let mut output_path = test_output();
-        std::fs::create_dir_all(&output_path).unwrap();
         output_path.push("test_write_peaks_to_bed_42_fields.bed");
         let mut peaks = HashMap::new();
         peaks.insert("chr1".to_string(), vec![PeakData::new(0, 45u64, 98u64, 55u64).unwrap()]);
@@ -252,7 +253,6 @@ mod tests {
     fn test_write_peaks_to_bed_0_fields() {
         let n_fields = 0;
         let mut output_path = test_output();
-        std::fs::create_dir_all(&output_path).unwrap();
         output_path.push("test_write_peaks_to_bed_0_fields.bed");
         let mut peaks = HashMap::new();
         peaks.insert("chr1".to_string(), vec![PeakData::new(0, 45u64, 98u64, 55u64).unwrap()]);
