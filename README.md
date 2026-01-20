@@ -1,7 +1,7 @@
 <img src="/resources/icon.svg" alt="Gipfelkreuzer icon" width=35% />
-\
-\
-\
+<br />
+<br />
+<br />
 Creates consensus peaks from raw peaks called on ChIP- or ATAC-Seq data.
 
 # Input data
