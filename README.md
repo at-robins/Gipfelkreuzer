@@ -1,4 +1,4 @@
-![Gipfelkreuzer icon](/resources/icon.svg)
+<img src="/resources/icon.svg" alt="Gipfelkreuzer icon" width=35% />
 \
 \
 \
