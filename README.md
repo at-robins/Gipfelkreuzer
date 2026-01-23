@@ -13,11 +13,29 @@ Summit information is expected at column 10 of the input BED file as offset from
 in the [narrowPeak format](https://genome.ucsc.edu/FAQ/FAQformat.html#format12).
 If no summit information is present the mean position is used as summit approximation.
 
-
 # Run
+
+You can either directly use the executable:
 
 ```bash
 Gipfelkreuzer -o consensus_peaks.bed called_peaks.narrowPeak
+```
+
+Or use the provided `Dockerfile`. First you need to build the Docker image.
+This only needs to be done once:
+
+```bash
+# Builds the docker image.
+cd path/to/Gipfelkreuzer/
+docker build -t "gipfelkreuzer:latest" .
+```
+
+Then you can run a docker container. You need to bind an input and output directory
+containg your peak files (in this example the directory `io` in your current working directory):
+
+```bash
+# Runs a docker container.
+docker run --rm --name gipfelkreuzer --mount type=bind,source=./io,target=/io gipfelkreuzer:latest -o /io/consensus_peaks.bed /io/called_peaks.narrowPeak
 ```
 
 # Optional command line arguments
