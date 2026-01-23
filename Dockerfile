@@ -7,8 +7,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Installs Gipfelkreuzer.
 RUN mkdir /tmp_downloads && \
-    git -C /tmp_downloads clone https://github.com/at-robins/Gipfelkreuzer.git && \
-    git -C /tmp_downloads/Gipfelkreuzer checkout 175a048
+    git -C /tmp_downloads clone https://github.com/at-robins/Gipfelkreuzer.git
 WORKDIR /tmp_downloads/Gipfelkreuzer
 RUN cargo build --release && \
     cp /tmp_downloads/Gipfelkreuzer/target/release/Gipfelkreuzer /usr/bin && \

@@ -4,9 +4,9 @@ Creates consensus peaks from raw peaks called on ChIP- or ATAC-Seq data.
 
 # Input data
 
-The tool requires a [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) complient BED3+ file as input
+The tool requires [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) complient BED3+ files as input
 containing the genomic locations of all peaks that should be used for consensus peak generation.
-Typically this will be a merged file containing all peaks called on individual samples of a respective experiment.
+Typically this will be multiple files containing the different peaks called on individual samples of a respective experiment.
 At minimum the first 3 BED columns (chromosome, start and end coordinate) are required,
 but the algorithm was explicitly designed to use the summit information provided for example by MACS3 called narrow peaks.
 Summit information is expected at column 10 of the input BED file as offset from the start coordinate as defined
@@ -18,7 +18,9 @@ If no summit information is present the mean position is used as summit approxim
 You can either directly use the executable:
 
 ```bash
-Gipfelkreuzer -o consensus_peaks.bed called_peaks.narrowPeak
+Gipfelkreuzer -o <output_file> <input_file_1> <input_file_2> <...> <input_file_n>
+# For example:
+Gipfelkreuzer -o consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak called_peaks_sample_3.narrowPeak
 ```
 
 Or use the provided `Dockerfile`. First you need to build the Docker image.
@@ -31,11 +33,11 @@ docker build -t "gipfelkreuzer:latest" .
 ```
 
 Then you can run a docker container. You need to bind an input and output directory
-containg your peak files (in this example the directory `io` in your current working directory):
+containg your peak files (in this example the directory `io` in the current working directory):
 
 ```bash
 # Runs a docker container.
-docker run --rm --name gipfelkreuzer --mount type=bind,source=./io,target=/io gipfelkreuzer:latest -o /io/consensus_peaks.bed /io/called_peaks.narrowPeak
+docker run --rm --name gipfelkreuzer --mount type=bind,source=./io,target=/io gipfelkreuzer:latest -o /io/consensus_peaks.bed /io/called_peaks_sample_1.narrowPeak /io/called_peaks_sample_2.narrowPeak
 ```
 
 # Optional command line arguments

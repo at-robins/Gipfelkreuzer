@@ -10,6 +10,7 @@ use crate::{
     peaks::{PeakData, PeakMerger},
 };
 
+/// Runs the application.
 fn main() -> Result<(), ApplicationError> {
     // Logs any uncatched errors.
     main_internal().map_err(|err| {
@@ -53,10 +54,10 @@ fn main_internal() -> Result<(), ApplicationError> {
         .map_err(|err| ApplicationError::from(err).chain("The logger could not be initialised."))?;
 
     let command_line_arguments = cl_args_result?;
-    let peaks_by_chromosome = bed_to_peaks(command_line_arguments.input_file()).map_err(|err| {
+    let peaks_by_chromosome = bed_to_peaks(command_line_arguments.input_files()).map_err(|err| {
         err.chain(format!(
-            "Failed to parse input file \"{}\".",
-            command_line_arguments.input_file().display()
+            "Failed to parse input files \"{:?}\".",
+            command_line_arguments.input_files()
         ))
     })?;
     let consenus: HashMap<String, Vec<PeakData>> = peaks_by_chromosome
@@ -77,7 +78,7 @@ fn main_internal() -> Result<(), ApplicationError> {
     .map_err(|err| {
         err.chain(format!(
             "Failed to write the consensus peaks to output file \"{}\".",
-            command_line_arguments.input_file().display(),
+            command_line_arguments.output_file().display(),
         ))
     })?;
     Ok(())

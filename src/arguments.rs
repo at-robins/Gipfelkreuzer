@@ -1,6 +1,6 @@
 //! This module defines command line arguments.
 
-use std::{borrow::Cow, fmt::Debug, path::PathBuf, time::SystemTime};
+use std::{fmt::Debug, path::PathBuf, time::SystemTime};
 
 use clap::Parser;
 use getset::{CopyGetters, Getters};
@@ -10,11 +10,12 @@ use log::LevelFilter;
 #[derive(Parser, CopyGetters, Getters, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct CommandLineArguments {
-    /// The path to the GA4GH BED v1.0 complient BED3+ input peak file.
+    /// The paths to the GA4GH BED v1.0 complient BED3+ input peak files.
     /// The peak summit offset from the start is expected at column 10
     /// as defined in the narrowPeak file format definition.
+    #[arg(required = true)]
     #[getset(get = "pub")]
-    input_file: PathBuf,
+    input_files: Vec<PathBuf>,
     /// The output file path [default: the input file path with the suffix "_consensus_peaks.bed"]
     #[arg(short, long)]
     output_file: Option<PathBuf>,
@@ -37,8 +38,9 @@ pub struct CommandLineArguments {
     max_merge_iterations: usize,
 }
 impl CommandLineArguments {
-    /// Returns the output directory.
-    /// If no directory has been specified the parent directory of the input file is returned.
+    /// Returns the output file.
+    /// If no file has been specified the current system time and working directory are used
+    /// as default output file name and directory, respectively.
     pub fn output_file(&self) -> PathBuf {
         self.output_file
             .as_ref()
@@ -48,17 +50,8 @@ impl CommandLineArguments {
                 let current_system_time = SystemTime::now()
                     .duration_since(SystemTime::UNIX_EPOCH)
                     .map(|a| a.as_secs())
-                    .unwrap_or(0)
-                    .to_string();
-                // Tries to use the input file name as first fallback, then the system time.
-                let input_file_name = self
-                    .input_file()
-                    .file_prefix()
-                    .map(|name| name.to_string_lossy())
-                    .unwrap_or(Cow::Borrowed(&current_system_time.as_str()));
-                let mut output = self
-                    .input_file()
-                    .with_file_name(format!("{}_consensus_peaks", input_file_name));
+                    .unwrap_or(0);
+                let mut output = PathBuf::from(format!("{}_consensus_peaks", current_system_time));
                 output.add_extension("bed");
                 output
             })
