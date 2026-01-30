@@ -1,6 +1,9 @@
 //! This module defines operations on genomic peak data.
 
-use crate::error::{ApplicationError, ApplicationErrorType};
+use crate::{
+    arguments::CommandLineArguments,
+    error::{ApplicationError, ApplicationErrorType},
+};
 use getset::{CopyGetters, Getters};
 
 #[derive(CopyGetters, Clone, Copy, PartialEq, Eq, Debug)]
@@ -245,11 +248,45 @@ impl ConsensusPeakAggregator {
     }
 }
 
-pub struct PeakMerger {
+#[derive(clap::ValueEnum, Debug, Clone, Copy)]
+/// A general definition of an algorithm that generates a set of consensus
+/// [`PeakData`] from raw input peaks.
+pub enum ConsensusPeakAlgorithm {
+    Gipfelkreuzer,
+}
+
+impl ConsensusPeakAlgorithm {
+    /// Creates consensus peaks from the specified raw input peaks.
+    /// Returns and error if the consensus finding failed.
+    ///
+    /// `peaks` - the raw input peaks to create consensus peaks from
+    /// `algorithm_arguments` - the passed [`CommandLineArguments`] to customise the algorithm
+    pub fn consensus_peaks(
+        &self,
+        peaks: Vec<PeakData>,
+        algorithm_arguments: &CommandLineArguments,
+    ) -> Result<Vec<PeakData>, ApplicationError> {
+        match self {
+            ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(GipfelkreuzerPeakMerger::new(peaks)
+                .consensus_peaks(algorithm_arguments.max_merge_iterations())),
+        }
+    }
+}
+
+impl std::fmt::Display for ConsensusPeakAlgorithm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            ConsensusPeakAlgorithm::Gipfelkreuzer => "Gipfelkreuzer",
+        };
+        write!(f, "{}", name)
+    }
+}
+
+pub struct GipfelkreuzerPeakMerger {
     bins: Vec<PeakBin>,
 }
 
-impl PeakMerger {
+impl GipfelkreuzerPeakMerger {
     /// Merges adjacent and overlapping peaks into
     pub fn new(mut peaks: Vec<PeakData>) -> Self {
         log::info!("Creating a peak merger with {} peaks.", peaks.len());

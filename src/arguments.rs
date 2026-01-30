@@ -6,6 +6,8 @@ use clap::Parser;
 use getset::{CopyGetters, Getters};
 use log::LevelFilter;
 
+use crate::peaks::ConsensusPeakAlgorithm;
+
 /// A tool for creating consensus peaks from genomic peak data, such as ATAC- or ChIP-Seq data.
 #[derive(Parser, CopyGetters, Getters, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -36,6 +38,10 @@ pub struct CommandLineArguments {
     #[arg(short, long, default_value_t = 20)]
     #[getset(get_copy = "pub")]
     max_merge_iterations: usize,
+    /// The algorithm to use for creating consensus peaks.
+    #[arg(short, long, default_value_t = ConsensusPeakAlgorithm::Gipfelkreuzer)]
+    #[getset(get_copy = "pub")]
+    algorithm: ConsensusPeakAlgorithm,
 }
 impl CommandLineArguments {
     /// Returns the output file.

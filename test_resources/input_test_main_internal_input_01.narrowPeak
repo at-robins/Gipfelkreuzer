@@ -1,0 +1,6 @@
+# Broad fragment covering both peaks and slightly shifted summit.
+chr1	500	1000	narrow_peak_01	358	.	16.7471	38.4652	35.8377 230
+# Peak at approximately coordinate 700.
+chr1	678	719	narrow_peak_01	358	.	16.7471	38.4652	35.8377 15
+chr1	658	739	narrow_peak_01	358	.	16.7471	38.4652	35.8377 37
+chr1	600	800	narrow_peak_01	358	.	16.7471	38.4652	35.8377 101
