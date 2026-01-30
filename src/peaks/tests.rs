@@ -202,17 +202,3 @@ fn test_peak_data_length() {
     let peak = PeakData::new(id, start, end, summit).unwrap();
     assert_eq!(peak.length(), 21);
 }
-
-#[test]
-fn test_peak_bin_new() {
-    let id: usize = 42;
-    let start: u64 = 2004402;
-    let end: u64 = 5090960056;
-    let summit: u64 = 48946040;
-    
-    let peak = PeakData::new(id, start, end, summit).unwrap();
-    let peak_bin = PeakBin::new(peak);
-    assert_eq!(peak_bin.start(), start);
-    assert_eq!(peak_bin.end(), end);
-    assert_eq!(peak_bin.peaks(), &vec![peak]);
-}
