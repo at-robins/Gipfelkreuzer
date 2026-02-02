@@ -39,10 +39,13 @@ pub struct CommandLineArguments {
     #[getset(get_copy = "pub")]
     max_merge_iterations: usize,
     /// The algorithm to use for creating consensus peaks.
+    /// The Gipfelkreuzer algorithm ("gipfelkreuzer") will use summit proximity as a merge criterium.
+    /// The simple merge algorithm ("simple") only merges all overlapping and adjacent peaks independent of their summit information or size.
     #[arg(short, long, default_value_t = ConsensusPeakAlgorithm::Gipfelkreuzer)]
     #[getset(get_copy = "pub")]
     algorithm: ConsensusPeakAlgorithm,
 }
+
 impl CommandLineArguments {
     /// Returns the output file.
     /// If no file has been specified the current system time and working directory are used

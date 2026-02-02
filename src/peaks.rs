@@ -2,9 +2,10 @@
 
 use crate::{
     arguments::CommandLineArguments,
-    error::{ApplicationError, ApplicationErrorType}, peaks::gipfelkreuzer::GipfelkreuzerPeakMerger,
+    error::{ApplicationError, ApplicationErrorType},
+    peaks::gipfelkreuzer::GipfelkreuzerPeakMerger,
 };
-use getset::{CopyGetters};
+use getset::CopyGetters;
 
 #[derive(CopyGetters, Clone, Copy, PartialEq, Eq, Debug)]
 /// Data representing a peak region on genomic data.
@@ -85,7 +86,13 @@ impl PeakData {
 /// A general definition of an algorithm that generates a set of consensus
 /// [`PeakData`] from raw input peaks.
 pub enum ConsensusPeakAlgorithm {
+    /// The Gipfelkreuzer algorithm.
+    /// Creates consensus peaks by iteratively merging smaller peaks with larger peaks
+    /// when their summits are in close proximity.
     Gipfelkreuzer,
+    /// A simple merge algorithm.
+    /// Overlapping and adjacent peaks are merged to create consensus peaks.
+    Simple,
 }
 
 impl ConsensusPeakAlgorithm {
@@ -102,6 +109,7 @@ impl ConsensusPeakAlgorithm {
         match self {
             ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(GipfelkreuzerPeakMerger::new(peaks)
                 .consensus_peaks(algorithm_arguments.max_merge_iterations())),
+            ConsensusPeakAlgorithm::Simple => simple::merge_peaks(peaks),
         }
     }
 }
@@ -109,7 +117,8 @@ impl ConsensusPeakAlgorithm {
 impl std::fmt::Display for ConsensusPeakAlgorithm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = match self {
-            ConsensusPeakAlgorithm::Gipfelkreuzer => "Gipfelkreuzer",
+            ConsensusPeakAlgorithm::Gipfelkreuzer => "gipfelkreuzer",
+            ConsensusPeakAlgorithm::Simple => "simple",
         };
         write!(f, "{}", name)
     }
@@ -131,6 +140,7 @@ fn is_continuous_range(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bo
 }
 
 pub mod gipfelkreuzer;
+pub mod simple;
 
 #[cfg(test)]
 mod tests;

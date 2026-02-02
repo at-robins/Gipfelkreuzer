@@ -42,18 +42,19 @@ docker run --rm --name gipfelkreuzer --mount type=bind,source=./io,target=/io gi
 
 # Optional command line arguments
 
-For more details run:
+The default values of algorithm specific arguments are optimised for a conventional run and should only be changed when you know exactly what you are doing. For more details run:
 
 ```bash
 Gipfelkreuzer --help
 ```
 
-| Argument (long)        | Argument (short) | Description                                                          |
-| ---------------------- | ---------------- | -------------------------------------------------------------------- |
-| --output-file          | -o               | The output file path                                                 |
-| --bed-output-columns   | -b               | The number of columns to output per consensus peak                   |
-| --max-merge-iterations | -m               | The maximum number of iterative merges for consensus peak generation |
-| --log-level            | -l               | The log level to print while running the tool                        |
+| Argument (long)        | Argument (short) | Description                                                                                                 |
+| ---------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| --output-file          | -o               | The output file path                                                                                        |
+| --bed-output-columns   | -b               | The number of columns to output per consensus peak                                                          |
+| --algorithm            | -a               | The algorithm to use for consensus peak generation                                                          |
+| --max-merge-iterations | -m               | The maximum number of iterative merges for consensus peak generation when using the Gipfelkreuzer algorithm |
+| --log-level            | -l               | The log level to print while running the tool                                                               |
 
 # Cite
 

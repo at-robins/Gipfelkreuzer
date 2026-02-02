@@ -1,10 +1,9 @@
+//! This module contains the specifics of the Gipfelkreuzer consensus peak generation algorithm.
 use getset::{CopyGetters, Getters};
 
 use crate::peaks::{PeakData, is_continuous_range};
 
-/// This module contains the specifics of the Gipfelkreuzer consensus peak generation algorithm.
-
-#[derive(CopyGetters, Getters, PartialEq)]
+#[derive(CopyGetters, Getters, PartialEq, Debug)]
 /// A bin containing overlapping or adjacent peaks.
 pub struct PeakBin {
     #[getset(get_copy = "pub")]
@@ -171,7 +170,9 @@ impl ConsensusPeakAggregator {
     }
 }
 
+#[derive(Getters)]
 pub struct GipfelkreuzerPeakMerger {
+    #[getset(get = "pub")]
     bins: Vec<PeakBin>,
 }
 
@@ -221,16 +222,16 @@ mod tests {
     use super::*;
 
     #[test]
-fn test_peak_bin_new() {
-    let id: usize = 42;
-    let start: u64 = 2004402;
-    let end: u64 = 5090960056;
-    let summit: u64 = 48946040;
-    
-    let peak = PeakData::new(id, start, end, summit).unwrap();
-    let peak_bin = PeakBin::new(peak);
-    assert_eq!(peak_bin.start(), start);
-    assert_eq!(peak_bin.end(), end);
-    assert_eq!(peak_bin.peaks(), &vec![peak]);
-}
+    fn test_peak_bin_new() {
+        let id: usize = 42;
+        let start: u64 = 2004402;
+        let end: u64 = 5090960056;
+        let summit: u64 = 48946040;
+
+        let peak = PeakData::new(id, start, end, summit).unwrap();
+        let peak_bin = PeakBin::new(peak);
+        assert_eq!(peak_bin.start(), start);
+        assert_eq!(peak_bin.end(), end);
+        assert_eq!(peak_bin.peaks(), &vec![peak]);
+    }
 }
