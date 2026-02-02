@@ -59,7 +59,12 @@ impl PeakBin {
     ///
     /// * `max_iterations` - the maximum number of peak merging iterations to be performed
     fn consensus_peaks(self, max_iterations: usize) -> Vec<PeakData> {
-        let mut consensus = Self::consensus_peaks_internal(self.peaks);
+        let mut consensus = Self::consensus_peaks_internal(
+            self.peaks
+                .into_iter()
+                .map(ConsensusPeakAggregator::from)
+                .collect(),
+        );
         // Iterativesly merges peaks until the maximum number of iterations is reached
         // or the peaks do not change anymore.
         let previous_consensus_length = consensus.len();
@@ -69,12 +74,14 @@ impl PeakBin {
                 break;
             }
         }
-        consensus
+        consensus.into_iter().map(PeakData::from).collect()
     }
 
     /// Converts the peak bin into its respective consensus peaks.
     /// Internal function logic to allow easy iterative consensus peak generation.
-    fn consensus_peaks_internal(mut peaks: Vec<PeakData>) -> Vec<PeakData> {
+    fn consensus_peaks_internal(
+        mut peaks: Vec<ConsensusPeakAggregator>,
+    ) -> Vec<ConsensusPeakAggregator> {
         let mut consensus_peaks = Vec::new();
         peaks.sort_by(|a, b| a.length().cmp(&b.length()));
         let mut remaining_peaks = peaks;
@@ -91,14 +98,13 @@ impl PeakBin {
                     }
                 } else {
                     // Uses the shortest peak as initial consensus peak characteristic defining peak.
-                    consensus_peak_aggregator = Some(ConsensusPeakAggregator::new(peak));
+                    consensus_peak_aggregator = Some(peak);
                 }
             }
 
             consensus_peaks.push(
                 consensus_peak_aggregator
-                    .expect("The consensus aggregator must have been created at this point.")
-                    .consensus_peak(),
+                    .expect("The consensus aggregator must have been created at this point."),
             );
             remaining_peaks = retained_peaks;
         }
@@ -108,65 +114,75 @@ impl PeakBin {
 
 struct ConsensusPeakAggregator {
     peaks: Vec<PeakData>,
+    consensus_peak: PeakData,
 }
 
 impl ConsensusPeakAggregator {
-    fn new(peak: PeakData) -> Self {
-        Self { peaks: vec![peak] }
+    fn id(&self) -> usize {
+        self.consensus_peak.id()
     }
 
-    fn defining_peak(&self) -> &PeakData {
-        self.peaks
-            .first()
-            .expect("There must have been a peak set during initialisation.")
-    }
-
-    fn consensus_id(&self) -> usize {
-        self.defining_peak().id()
-    }
-
-    fn try_aggregate(&mut self, peak: PeakData) -> Option<PeakData> {
-        let defining_peak = self.defining_peak();
-        if peak.summit() <= defining_peak.end() && peak.summit() >= defining_peak.start() {
-            self.peaks.push(peak);
+    fn try_aggregate(&mut self, peak: ConsensusPeakAggregator) -> Option<ConsensusPeakAggregator> {
+        if peak.summit() <= self.consensus_peak.end()
+            && peak.summit() >= self.consensus_peak.start()
+        {
+            self.peaks.extend(peak.peaks);
+            self.update_consensus_peak();
             None
         } else {
             Some(peak)
         }
     }
 
-    fn start(&self) -> u64 {
-        let starts: Vec<u64> = self.peaks.iter().map(PeakData::start).collect();
-        Self::u64_median(starts)
-    }
-
-    fn end(&self) -> u64 {
-        let ends: Vec<u64> = self.peaks.iter().map(PeakData::end).collect();
-        Self::u64_median(ends)
-    }
-
     fn summit(&self) -> u64 {
-        let ends: Vec<u64> = self.peaks.iter().map(PeakData::summit).collect();
-        Self::u64_median(ends)
+        self.consensus_peak.summit()
     }
 
-    fn consensus_peak(&self) -> PeakData {
-        PeakData::new(self.consensus_id(), self.start(), self.end(), self.summit()).expect(
-            "The consensus peak parameters must be valid as they were derived from valid peaks.",
+    fn length(&self) -> u64 {
+        self.consensus_peak.length()
+    }
+
+    fn update_consensus_peak(&mut self) {
+        let starts: Vec<u64> = self.peaks.iter().map(PeakData::start).collect();
+        let ends: Vec<u64> = self.peaks.iter().map(PeakData::end).collect();
+        let summits: Vec<u64> = self.peaks.iter().map(PeakData::summit).collect();
+        self.consensus_peak = PeakData::new(
+            self.id(),
+            u64_median(starts),
+            u64_median(ends),
+            u64_median(summits),
         )
+        .expect(
+            "The consensus peak parameters must be valid as they were derived from valid peaks.",
+        );
     }
+}
 
-    fn u64_median(mut values: Vec<u64>) -> u64 {
-        if values.is_empty() {
-            panic!("The median of an empty collection cannot be calculated.");
+impl From<PeakData> for ConsensusPeakAggregator {
+    fn from(peak: PeakData) -> Self {
+        Self {
+            peaks: vec![peak],
+            consensus_peak: peak,
         }
-        values.sort();
-        let midpoint = values.len().div_ceil(2) - 1;
-        if values.len() % 2 == 0 {
-            (values[midpoint] + values[midpoint + 1]) / 2
-        } else {
-            values[midpoint]
-        }
+    }
+}
+
+impl From<ConsensusPeakAggregator> for PeakData {
+    fn from(value: ConsensusPeakAggregator) -> Self {
+        value.consensus_peak
+    }
+}
+
+fn u64_median(mut values: Vec<u64>) -> u64 {
+    if values.is_empty() {
+        panic!("The median of an empty collection cannot be calculated.");
+    }
+    values.sort();
+    let midpoint = values.len().div_ceil(2) - 1;
+    if values.len() % 2 == 0 {
+        (values[midpoint] + values[midpoint + 1]) / 2
+    } else {
+        values[midpoint]
     }
 }
 
