@@ -202,3 +202,93 @@ fn test_peak_data_length() {
     let peak = PeakData::new(id, start, end, summit).unwrap();
     assert_eq!(peak.length(), 21);
 }
+
+#[test]
+fn test_peak_bin_new() {
+    let id: usize = 42;
+    let start: u64 = 2004402;
+    let end: u64 = 5090960056;
+    let summit: u64 = 48946040;
+
+    let peak = PeakData::new(id, start, end, summit).unwrap();
+    let peak_bin = PeakBin::new(peak);
+    assert_eq!(peak_bin.start(), start);
+    assert_eq!(peak_bin.end(), end);
+    assert_eq!(peak_bin.peaks(), &vec![peak]);
+}
+
+#[test]
+fn test_peak_bin_insert() {
+    let peaks = vec![
+        PeakData::new(0, 12u64, 24u64, 18u64).unwrap(),
+        PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+        PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+        PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+    ];
+
+    let mut peak_bin = PeakBin::new(peaks[0]);
+    peak_bin.insert(peaks[1]);
+    assert_eq!(peak_bin.start(), peaks[0..=1].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=1].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=1]);
+
+    peak_bin.insert(peaks[2]);
+    assert_eq!(peak_bin.start(), peaks[0..=2].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=2].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=2]);
+
+    peak_bin.insert(peaks[3]);
+    assert_eq!(peak_bin.start(), peaks.iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks.iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks);
+}
+
+#[test]
+fn test_peak_bin_try_insert() {
+    let peaks = vec![
+        PeakData::new(0, 12u64, 22u64, 18u64).unwrap(),
+        PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+        PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+        PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+        PeakData::new(3, 270u64, 290u64, 277u64).unwrap(),
+    ];
+
+    let mut peak_bin = PeakBin::new(peaks[0]);
+    assert!(peak_bin.try_insert(peaks[1]).is_none());
+    assert_eq!(peak_bin.start(), peaks[0..=1].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=1].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=1]);
+
+    assert!(peak_bin.try_insert(peaks[2]).is_none());
+    assert_eq!(peak_bin.start(), peaks[0..=2].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=2].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=2]);
+
+    assert!(peak_bin.try_insert(peaks[3]).is_none());
+    assert_eq!(peak_bin.start(), peaks[0..=3].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=3].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=3]);
+
+    assert_eq!(peak_bin.try_insert(peaks[4]), Some(peaks[4]));
+    assert_eq!(peak_bin.start(), peaks[0..=3].iter().map(PeakData::start).min().unwrap());
+    assert_eq!(peak_bin.end(), peaks[0..=3].iter().map(PeakData::end).max().unwrap());
+    assert_eq!(peak_bin.peaks(), &peaks[0..=3]);
+}
+
+#[test]
+fn test_peak_bin_into_peak_vec() {
+    let peaks = vec![
+        PeakData::new(0, 12u64, 22u64, 18u64).unwrap(),
+        PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+        PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+        PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+    ];
+
+    let mut peak_bin = PeakBin::new(peaks[0]);
+    assert!(peak_bin.try_insert(peaks[1]).is_none());
+    assert!(peak_bin.try_insert(peaks[2]).is_none());
+    assert!(peak_bin.try_insert(peaks[3]).is_none());
+
+    let peaks_in_bin: Vec<PeakData> = peak_bin.into();
+    assert_eq!(peaks_in_bin, peaks);
+}
