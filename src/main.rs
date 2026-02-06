@@ -252,6 +252,50 @@ mod tests {
     }
 
     #[test]
+    fn test_main_internal_with_summit_14_fields_simple_min() {
+        let n_output_fields = 14;
+        let input_dir = test_resources();
+        let input_path_1 = input_dir.join("input_test_main_internal_input_01_simple_min.narrowPeak");
+        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
+        let mut output_path = test_output();
+        output_path.push("test_main_internal_default_with_summit_14_fields_simple_min.bed");
+        assert!(!output_path.exists());
+        let cla = CommandLineArguments::try_parse_from([
+            "Gipfelkreuzer",
+            "-a",
+            "simple",
+            "-b",
+            &format!("{}", n_output_fields),
+            "-n",
+            &format!("{}", 4),
+            "-o",
+            &output_path.display().to_string(),
+            &input_path_1.display().to_string(),
+            &input_path_2.display().to_string(),
+        ]);
+        assert!(main_internal(cla, true).is_ok());
+        assert!(output_path.exists());
+
+        let output_file = BufReader::new(File::open(&output_path).unwrap());
+        let expected_output_lines: Vec<String> =
+            vec![PeakData::new(0, 600u64, 788u64, 694u64).unwrap()]
+                .iter()
+                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
+                .collect();
+        for line in output_file.lines() {
+            // Adds the new line character that was stripped during the read process.
+            let line = format!("{}\n", line.unwrap());
+            assert!(
+                expected_output_lines.contains(&line),
+                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
+                line,
+                expected_output_lines
+            )
+        }
+        std::fs::remove_file(output_path).unwrap();
+    }
+
+    #[test]
     fn test_main_internal_default_with_summit_14_fields_simple() {
         let n_output_fields = 14;
         let input_dir = test_resources();

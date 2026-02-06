@@ -54,6 +54,7 @@ Gipfelkreuzer --help
 | --bed-output-columns   | -b               | The number of columns to output per consensus peak                                                          |
 | --algorithm            | -a               | The algorithm to use for consensus peak generation                                                          |
 | --max-merge-iterations | -m               | The maximum number of iterative merges for consensus peak generation when using the Gipfelkreuzer algorithm |
+| --min-peaks-per-bin    | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible   |
 | --log-level            | -l               | The log level to print while running the tool                                                               |
 
 # Cite

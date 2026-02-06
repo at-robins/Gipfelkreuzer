@@ -109,9 +109,9 @@ impl PeakBin {
 
     /// Internal function that inserts a peak into the bin without bound checks
     /// and updates the respective start and end of the peak bin.
-    /// 
+    ///
     /// # Parameters
-    /// 
+    ///
     /// * `peak_data` - the peak to insert into the bin
     fn insert(&mut self, peak_data: PeakData) {
         if peak_data.start() < self.start() {
@@ -172,7 +172,9 @@ impl ConsensusPeakAlgorithm {
         match self {
             ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(GipfelkreuzerPeakMerger::new(peaks)
                 .consensus_peaks(algorithm_arguments.max_merge_iterations())),
-            ConsensusPeakAlgorithm::Simple => simple::merge_peaks(peaks),
+            ConsensusPeakAlgorithm::Simple => {
+                simple::merge_peaks(peaks, algorithm_arguments.min_peaks_per_bin())
+            },
         }
     }
 }

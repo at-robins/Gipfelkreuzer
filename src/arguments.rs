@@ -44,6 +44,11 @@ pub struct CommandLineArguments {
     #[arg(short, long, default_value_t = ConsensusPeakAlgorithm::Gipfelkreuzer)]
     #[getset(get_copy = "pub")]
     algorithm: ConsensusPeakAlgorithm,
+    /// The minimum number of raw peaks per consensus peak to consider it reproducible.
+    /// If less peaks are used for the generation of a consensus peak it is discarded.
+    #[arg(short='n', long, default_value_t = 0)]
+    #[getset(get_copy = "pub")]
+    min_peaks_per_bin: usize,
 }
 
 impl CommandLineArguments {

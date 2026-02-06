@@ -123,6 +123,15 @@ impl From<ConsensusPeakAggregator> for PeakData {
     }
 }
 
+/// Returns the median of the specified values.
+///
+/// # Parameters
+///
+/// * `values` - the values to calculate the median of
+///
+/// # Panics
+///
+/// If the vector of values is empty.
 fn u64_median(mut values: Vec<u64>) -> u64 {
     if values.is_empty() {
         panic!("The median of an empty collection cannot be calculated.");
@@ -143,7 +152,7 @@ pub struct GipfelkreuzerPeakMerger {
 }
 
 impl GipfelkreuzerPeakMerger {
-    /// Merges adjacent and overlapping peaks into
+    /// Merges adjacent and overlapping peaks into consensus peaks based on their summit proximity.
     pub fn new(mut peaks: Vec<PeakData>) -> Self {
         log::info!("Creating a peak merger with {} peaks.", peaks.len());
         log::debug!("Sorting peaks by start position.");
@@ -187,5 +196,19 @@ impl GipfelkreuzerPeakMerger {
 mod tests {
     use super::*;
 
-    
+    #[test]
+    fn test_u64_median() {
+        // Central value.
+        assert_eq!(8, u64_median(vec![1, 8, 56]));
+        // Mean of central values.
+        assert_eq!(32, u64_median(vec![1, 8, 56, 353631]));
+        // Rounding of mean of central value.
+        assert_eq!(32, u64_median(vec![1, 9, 56, 353631]));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_u64_median_empty() {
+        u64_median(Vec::new());
+    }
 }
