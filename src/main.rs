@@ -108,6 +108,7 @@ mod tests {
     use std::{
         fs::File,
         io::{BufRead, BufReader},
+        path::PathBuf,
     };
 
     use crate::{
@@ -119,291 +120,126 @@ mod tests {
 
     #[test]
     fn test_main_internal_default_with_summit_4_fields() {
-        let n_output_fields = 4;
-        let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_4_fields.bed");
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "gipfelkreuzer",
-            "-m",
-            "20",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> = vec![
-            PeakData::new(1, 629u64, 769u64, 698u64).unwrap(),
-            PeakData::new(4, 864u64, 918u64, 904u64).unwrap(),
-        ]
-        .iter()
-        .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-        .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_4_fields.bed",
+            &vec![
+                "-a".to_string(),
+                "gipfelkreuzer".to_string(),
+                "-m".to_string(),
+                "20".to_string(),
+                "-b".to_string(),
+                "4".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(1, 629u64, 769u64, 698u64).unwrap()),
+                ("chr1".to_string(), PeakData::new(4, 864u64, 918u64, 904u64).unwrap()),
+            ],
+        );
     }
 
     #[test]
     fn test_main_internal_default_with_summit_14_fields() {
-        let n_output_fields = 14;
-        let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_14_fields.bed");
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "gipfelkreuzer",
-            "-m",
-            "20",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> = vec![
-            PeakData::new(1, 629u64, 769u64, 698u64).unwrap(),
-            PeakData::new(4, 864u64, 918u64, 904u64).unwrap(),
-        ]
-        .iter()
-        .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-        .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_14_fields.bed",
+            &vec![
+                "-a".to_string(),
+                "gipfelkreuzer".to_string(),
+                "-m".to_string(),
+                "20".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(1, 629u64, 769u64, 698u64).unwrap()),
+                ("chr1".to_string(), PeakData::new(4, 864u64, 918u64, 904u64).unwrap()),
+            ],
+        );
     }
 
     #[test]
     fn test_main_internal_default_with_summit_14_fields_min() {
-        let n_output_fields = 14;
-        let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_14_fields_min.bed");
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "gipfelkreuzer",
-            "-m",
-            "20",
-            "-n",
-            "4",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> =
-            vec![PeakData::new(1, 629u64, 769u64, 698u64).unwrap()]
-                .iter()
-                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-                .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_14_fields_min.bed",
+            &vec![
+                "-a".to_string(),
+                "gipfelkreuzer".to_string(),
+                "-m".to_string(),
+                "20".to_string(),
+                "-n".to_string(),
+                "4".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![("chr1".to_string(), PeakData::new(1, 629u64, 769u64, 698u64).unwrap())],
+        );
     }
 
     #[test]
     fn test_main_internal_default_with_summit_4_fields_simple() {
-        let n_output_fields = 4;
-        let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_4_fields_simple.bed");
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "simple",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> =
-            vec![PeakData::new(0, 500u64, 1000u64, 750u64).unwrap()]
-                .iter()
-                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-                .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_4_fields_simple.bed",
+            &vec![
+                "-a".to_string(),
+                "simple".to_string(),
+                "-b".to_string(),
+                "4".to_string(),
+            ],
+            vec![("chr1".to_string(), PeakData::new(0, 500u64, 1000u64, 750u64).unwrap())],
+        );
     }
 
     #[test]
     fn test_main_internal_with_summit_14_fields_simple_min() {
-        let n_output_fields = 14;
-        let input_dir = test_resources();
-        let input_path_1 =
-            input_dir.join("input_test_main_internal_input_01_simple_min.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_14_fields_simple_min.bed");
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "simple",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-n",
-            &format!("{}", 4),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> =
-            vec![PeakData::new(0, 600u64, 788u64, 694u64).unwrap()]
-                .iter()
-                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-                .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01_simple_min.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_14_fields_simple_min.bed",
+            &vec![
+                "-a".to_string(),
+                "simple".to_string(),
+                "-n".to_string(),
+                "4".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![("chr1".to_string(), PeakData::new(0, 600u64, 788u64, 694u64).unwrap())],
+        );
     }
 
     #[test]
     fn test_main_internal_default_with_summit_14_fields_simple() {
-        let n_output_fields = 14;
-        let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
-        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
-        let mut output_path = test_output();
-        output_path.push("test_main_internal_default_with_summit_14_fields_simple.bed");
-        // Cleans up data from failed tests.
-        if output_path.exists() {
-            std::fs::remove_file(&output_path).unwrap();
-        }
-        assert!(!output_path.exists());
-        let cla = CommandLineArguments::try_parse_from([
-            "Gipfelkreuzer",
-            "-a",
-            "simple",
-            "-b",
-            &format!("{}", n_output_fields),
-            "-o",
-            &output_path.display().to_string(),
-            &input_path_1.display().to_string(),
-            &input_path_2.display().to_string(),
-        ]);
-        assert!(main_internal(cla, true).is_ok());
-        assert!(output_path.exists());
-
-        let output_file = BufReader::new(File::open(&output_path).unwrap());
-        let expected_output_lines: Vec<String> =
-            vec![PeakData::new(0, 500u64, 1000u64, 750u64).unwrap()]
-                .iter()
-                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
-                .collect();
-        let mut number_lines_in_output = 0;
-        for line in output_file.lines() {
-            number_lines_in_output += 1;
-            // Adds the new line character that was stripped during the read process.
-            let line = format!("{}\n", line.unwrap());
-            assert!(
-                expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
-                line,
-                expected_output_lines
-            )
-        }
-        assert_eq!(expected_output_lines.len(), number_lines_in_output);
-        std::fs::remove_file(output_path).unwrap();
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_default_with_summit_14_fields_simple.bed",
+            &vec![
+                "-a".to_string(),
+                "simple".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![("chr1".to_string(), PeakData::new(0, 500u64, 1000u64, 750u64).unwrap())],
+        );
     }
 
     #[test]
@@ -416,5 +252,61 @@ mod tests {
     fn test_main_internal_version() {
         let cla_short = CommandLineArguments::try_parse_from(vec!["Gipfelkreuzer", "-V"]);
         assert!(main_internal(cla_short, true).is_ok());
+    }
+
+    /// Runs a standardised test for the internal ```main``` function.
+    ///
+    /// # Parameters
+    ///
+    /// * `input` - the path to the respective input files within the test directory
+    /// * `output` - the path to the output file within the tmeporary test output directory
+    /// * `cla` - the command line argument list
+    /// * `expected_output_peaks` - a list of output peaks and their respective chromosome
+    fn test_main_internal(
+        input: &[&str],
+        output: &str,
+        cla: &[String],
+        expected_output_peaks: Vec<(String, PeakData)>,
+    ) {
+        let input_dir = test_resources();
+        let input_paths: Vec<PathBuf> = input.iter().map(|i| input_dir.join(i)).collect();
+        let mut output_path = test_output();
+        output_path.push(output);
+        // Cleans up data from failed tests.
+        if output_path.exists() {
+            std::fs::remove_file(&output_path).unwrap();
+        }
+        assert!(!output_path.exists());
+        let mut final_cla = vec!["Gipfelkreuzer".to_string()];
+        final_cla.extend_from_slice(cla);
+        final_cla.extend_from_slice(&["-o".to_string(), output_path.display().to_string()]);
+        final_cla.extend(input_paths.iter().map(|i| i.display().to_string()));
+        let cla = CommandLineArguments::try_parse_from(final_cla);
+        let bed_fields = cla
+            .as_ref()
+            .map(|arguments| arguments.bed_output_columns())
+            .unwrap();
+        assert!(main_internal(cla, true).is_ok());
+        assert!(output_path.exists());
+
+        let output_file = BufReader::new(File::open(&output_path).unwrap());
+        let expected_output_lines: Vec<String> = expected_output_peaks
+            .iter()
+            .map(|(chromosome, peak)| peak_to_bed_record_line(peak, chromosome, bed_fields))
+            .collect();
+        let mut number_lines_in_output = 0;
+        for line in output_file.lines() {
+            number_lines_in_output += 1;
+            // Adds the new line character that was stripped during the read process.
+            let line = format!("{}\n", line.unwrap());
+            assert!(
+                expected_output_lines.contains(&line),
+                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
+                line,
+                expected_output_lines
+            )
+        }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
+        std::fs::remove_file(output_path).unwrap();
     }
 }

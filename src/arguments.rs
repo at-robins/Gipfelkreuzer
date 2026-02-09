@@ -9,7 +9,7 @@ use log::LevelFilter;
 use crate::peaks::ConsensusPeakAlgorithm;
 
 /// A tool for creating consensus peaks from genomic peak data, such as ATAC- or ChIP-Seq data.
-#[derive(Parser, CopyGetters, Getters, Debug)]
+#[derive(Parser, CopyGetters, Getters, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct CommandLineArguments {
     /// The paths to the GA4GH BED v1.0 complient BED3+ input peak files.
