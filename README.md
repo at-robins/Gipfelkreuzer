@@ -4,7 +4,7 @@ Creates consensus peaks from raw peaks called on ChIP- or ATAC-Seq data.
 
 # Input data
 
-The tool requires [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) complient BED3+ files as input
+The application requires [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) complient BED3+ files as input
 containing the genomic locations of all peaks that should be used for consensus peak generation.
 Typically this will be multiple files containing the different peaks called on individual samples of a respective experiment.
 At minimum the first 3 BED columns (chromosome, start and end coordinate) are required,
@@ -48,14 +48,14 @@ The default values of algorithm specific arguments are optimised for a conventio
 Gipfelkreuzer --help
 ```
 
-| Argument (long)        | Argument (short) | Description                                                                                                 |
-| ---------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| --output-file          | -o               | The output file path                                                                                        |
-| --bed-output-columns   | -b               | The number of columns to output per consensus peak                                                          |
-| --algorithm            | -a               | The algorithm to use for consensus peak generation                                                          |
-| --max-merge-iterations | -m               | The maximum number of iterative merges for consensus peak generation when using the Gipfelkreuzer algorithm |
-| --min-peaks-per-bin    | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible   |
-| --log-level            | -l               | The log level to print while running the tool                                                               |
+| Argument (long)           | Argument (short) | Description                                                                                                 |
+| ------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| --output-file             | -o               | The output file path                                                                                        |
+| --bed-output-columns      | -b               | The number of columns to output per consensus peak                                                          |
+| --algorithm               | -a               | The algorithm to use for consensus peak generation                                                          |
+| --max-merge-iterations    | -m               | The maximum number of iterative merges for consensus peak generation when using the Gipfelkreuzer algorithm |
+| --min-peaks-per-consensus | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible   |
+| --log-level               | -l               | The log level to print while running the application                                                        |
 
 # Cite
 

@@ -150,7 +150,9 @@ mod tests {
         .iter()
         .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
         .collect();
+        let mut number_lines_in_output = 0;
         for line in output_file.lines() {
+            number_lines_in_output += 1;
             // Adds the new line character that was stripped during the read process.
             let line = format!("{}\n", line.unwrap());
             assert!(
@@ -160,6 +162,7 @@ mod tests {
                 expected_output_lines
             )
         }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
         std::fs::remove_file(output_path).unwrap();
     }
 
@@ -196,7 +199,9 @@ mod tests {
         .iter()
         .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
         .collect();
+        let mut number_lines_in_output = 0;
         for line in output_file.lines() {
+            number_lines_in_output += 1;
             // Adds the new line character that was stripped during the read process.
             let line = format!("{}\n", line.unwrap());
             assert!(
@@ -206,6 +211,56 @@ mod tests {
                 expected_output_lines
             )
         }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
+        std::fs::remove_file(output_path).unwrap();
+    }
+
+    #[test]
+    fn test_main_internal_default_with_summit_14_fields_min() {
+        let n_output_fields = 14;
+        let input_dir = test_resources();
+        let input_path_1 = input_dir.join("input_test_main_internal_input_01.narrowPeak");
+        let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
+        let mut output_path = test_output();
+        output_path.push("test_main_internal_default_with_summit_14_fields_min.bed");
+        assert!(!output_path.exists());
+        let cla = CommandLineArguments::try_parse_from([
+            "Gipfelkreuzer",
+            "-a",
+            "gipfelkreuzer",
+            "-m",
+            "20",
+            "-n",
+            "4",
+            "-b",
+            &format!("{}", n_output_fields),
+            "-o",
+            &output_path.display().to_string(),
+            &input_path_1.display().to_string(),
+            &input_path_2.display().to_string(),
+        ]);
+        assert!(main_internal(cla, true).is_ok());
+        assert!(output_path.exists());
+
+        let output_file = BufReader::new(File::open(&output_path).unwrap());
+        let expected_output_lines: Vec<String> =
+            vec![PeakData::new(1, 629u64, 769u64, 698u64).unwrap()]
+                .iter()
+                .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
+                .collect();
+        let mut number_lines_in_output = 0;
+        for line in output_file.lines() {
+            number_lines_in_output += 1;
+            // Adds the new line character that was stripped during the read process.
+            let line = format!("{}\n", line.unwrap());
+            assert!(
+                expected_output_lines.contains(&line),
+                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
+                line,
+                expected_output_lines
+            )
+        }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
         std::fs::remove_file(output_path).unwrap();
     }
 
@@ -238,7 +293,9 @@ mod tests {
                 .iter()
                 .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
                 .collect();
+        let mut number_lines_in_output = 0;
         for line in output_file.lines() {
+            number_lines_in_output += 1;
             // Adds the new line character that was stripped during the read process.
             let line = format!("{}\n", line.unwrap());
             assert!(
@@ -248,6 +305,7 @@ mod tests {
                 expected_output_lines
             )
         }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
         std::fs::remove_file(output_path).unwrap();
     }
 
@@ -255,7 +313,8 @@ mod tests {
     fn test_main_internal_with_summit_14_fields_simple_min() {
         let n_output_fields = 14;
         let input_dir = test_resources();
-        let input_path_1 = input_dir.join("input_test_main_internal_input_01_simple_min.narrowPeak");
+        let input_path_1 =
+            input_dir.join("input_test_main_internal_input_01_simple_min.narrowPeak");
         let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
         let mut output_path = test_output();
         output_path.push("test_main_internal_default_with_summit_14_fields_simple_min.bed");
@@ -282,7 +341,9 @@ mod tests {
                 .iter()
                 .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
                 .collect();
+        let mut number_lines_in_output = 0;
         for line in output_file.lines() {
+            number_lines_in_output += 1;
             // Adds the new line character that was stripped during the read process.
             let line = format!("{}\n", line.unwrap());
             assert!(
@@ -292,6 +353,7 @@ mod tests {
                 expected_output_lines
             )
         }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
         std::fs::remove_file(output_path).unwrap();
     }
 
@@ -303,6 +365,10 @@ mod tests {
         let input_path_2 = input_dir.join("input_test_main_internal_input_02.narrowPeak");
         let mut output_path = test_output();
         output_path.push("test_main_internal_default_with_summit_14_fields_simple.bed");
+        // Cleans up data from failed tests.
+        if output_path.exists() {
+            std::fs::remove_file(&output_path).unwrap();
+        }
         assert!(!output_path.exists());
         let cla = CommandLineArguments::try_parse_from([
             "Gipfelkreuzer",
@@ -324,7 +390,9 @@ mod tests {
                 .iter()
                 .map(|peak| peak_to_bed_record_line(peak, "chr1", n_output_fields))
                 .collect();
+        let mut number_lines_in_output = 0;
         for line in output_file.lines() {
+            number_lines_in_output += 1;
             // Adds the new line character that was stripped during the read process.
             let line = format!("{}\n", line.unwrap());
             assert!(
@@ -334,6 +402,7 @@ mod tests {
                 expected_output_lines
             )
         }
+        assert_eq!(expected_output_lines.len(), number_lines_in_output);
         std::fs::remove_file(output_path).unwrap();
     }
 

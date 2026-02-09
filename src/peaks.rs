@@ -171,9 +171,12 @@ impl ConsensusPeakAlgorithm {
     ) -> Result<Vec<PeakData>, ApplicationError> {
         match self {
             ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(GipfelkreuzerPeakMerger::new(peaks)
-                .consensus_peaks(algorithm_arguments.max_merge_iterations())),
+                .consensus_peaks(
+                    algorithm_arguments.max_merge_iterations(),
+                    algorithm_arguments.min_peaks_per_consensus(),
+                )),
             ConsensusPeakAlgorithm::Simple => {
-                simple::merge_peaks(peaks, algorithm_arguments.min_peaks_per_bin())
+                simple::merge_peaks(peaks, algorithm_arguments.min_peaks_per_consensus())
             },
         }
     }
@@ -205,6 +208,7 @@ fn is_continuous_range(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bo
 }
 
 pub mod gipfelkreuzer;
+// pub mod harmoniser;
 pub mod simple;
 
 #[cfg(test)]

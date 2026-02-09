@@ -48,7 +48,7 @@ pub struct CommandLineArguments {
     /// If less peaks are used for the generation of a consensus peak it is discarded.
     #[arg(short='n', long, default_value_t = 0)]
     #[getset(get_copy = "pub")]
-    min_peaks_per_bin: usize,
+    min_peaks_per_consensus: usize,
 }
 
 impl CommandLineArguments {

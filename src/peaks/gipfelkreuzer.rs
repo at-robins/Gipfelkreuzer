@@ -1,4 +1,5 @@
 //! This module contains the specifics of the Gipfelkreuzer consensus peak generation algorithm.
+
 use getset::Getters;
 
 use crate::peaks::{PeakBin, PeakData};
@@ -9,7 +10,12 @@ use crate::peaks::{PeakBin, PeakData};
 ///
 /// * `peak_bin` - the bin of peaks to generate consensus peaks from
 /// * `max_iterations` - the maximum number of peak merging iterations to be performed
-fn bin_to_consensus_peaks(peak_bin: PeakBin, max_iterations: usize) -> Vec<PeakData> {
+/// * `min_peaks_per_consensus` - the minimum number of raw peak that are required for the generation of a consensus peak
+fn bin_to_consensus_peaks(
+    peak_bin: PeakBin,
+    max_iterations: usize,
+    min_peaks_per_consensus: usize,
+) -> Vec<PeakData> {
     let mut consensus = bin_to_consensus_peaks_internal(
         Vec::<PeakData>::from(peak_bin)
             .into_iter()
@@ -25,7 +31,11 @@ fn bin_to_consensus_peaks(peak_bin: PeakBin, max_iterations: usize) -> Vec<PeakD
             break;
         }
     }
-    consensus.into_iter().map(PeakData::from).collect()
+    consensus
+        .into_iter()
+        .filter(|peak| peak.number_aggregated_peaks() >= min_peaks_per_consensus)
+        .map(PeakData::from)
+        .collect()
 }
 
 /// Converts the peak bin into its respective consensus peaks.
@@ -62,6 +72,7 @@ fn bin_to_consensus_peaks_internal(
     consensus_peaks
 }
 
+#[derive(Debug)]
 struct ConsensusPeakAggregator {
     peaks: Vec<PeakData>,
     consensus_peak: PeakData,
@@ -90,6 +101,11 @@ impl ConsensusPeakAggregator {
 
     fn length(&self) -> u64 {
         self.consensus_peak.length()
+    }
+
+    /// Returns the number of aggregated peaks used to create this consensus peak.
+    pub fn number_aggregated_peaks(&self) -> usize {
+        self.peaks.len()
     }
 
     fn update_consensus_peak(&mut self) {
@@ -183,10 +199,18 @@ impl GipfelkreuzerPeakMerger {
         Self { bins }
     }
 
-    pub fn consensus_peaks(self, max_iterations: usize) -> Vec<PeakData> {
+    pub fn consensus_peaks(
+        self,
+        max_iterations: usize,
+        min_peaks_per_consensus: usize,
+    ) -> Vec<PeakData> {
         let mut consensus_peaks = Vec::new();
         for bin in self.bins {
-            consensus_peaks.extend(bin_to_consensus_peaks(bin, max_iterations));
+            consensus_peaks.extend(bin_to_consensus_peaks(
+                bin,
+                max_iterations,
+                min_peaks_per_consensus,
+            ));
         }
         consensus_peaks
     }
