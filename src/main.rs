@@ -301,7 +301,7 @@ mod tests {
             let line = format!("{}\n", line.unwrap());
             assert!(
                 expected_output_lines.contains(&line),
-                "The generated output file must contains the line \"{}\", but should only contain \"{:?}\"",
+                "The generated output file contains the line \"{}\", but should only contain \"{:?}\"",
                 line,
                 expected_output_lines
             )

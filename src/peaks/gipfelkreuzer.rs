@@ -72,18 +72,30 @@ fn bin_to_consensus_peaks_internal(
     consensus_peaks
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
+/// An aggregator that represents multiple raw peaks that are used for consensus peak generation.
 struct ConsensusPeakAggregator {
     peaks: Vec<PeakData>,
     consensus_peak: PeakData,
 }
 
 impl ConsensusPeakAggregator {
+    /// The ID of the currently aggregated consenus peak.
     fn id(&self) -> usize {
         self.consensus_peak.id()
     }
 
-    fn try_aggregate(&mut self, peak: ConsensusPeakAggregator) -> Option<ConsensusPeakAggregator> {
+    /// Tries to merge the two peak aggregators. If they are similar based on their summit distance
+    /// the passed aggregator is consumed and its peaks are merged into this aggregator, otherwise the
+    /// aggregator is returned unaltered.
+    ///
+    /// # Parameters
+    ///
+    /// * `peak` - the consensus peak to merge
+    pub fn try_aggregate(
+        &mut self,
+        peak: ConsensusPeakAggregator,
+    ) -> Option<ConsensusPeakAggregator> {
         if peak.summit() <= self.consensus_peak.end()
             && peak.summit() >= self.consensus_peak.start()
         {
@@ -95,10 +107,12 @@ impl ConsensusPeakAggregator {
         }
     }
 
+    /// The summit of the currently aggregated consenus peak.
     fn summit(&self) -> u64 {
         self.consensus_peak.summit()
     }
 
+    /// The length of the currently aggregated consenus peak.
     fn length(&self) -> u64 {
         self.consensus_peak.length()
     }
@@ -108,6 +122,8 @@ impl ConsensusPeakAggregator {
         self.peaks.len()
     }
 
+    /// Updates the current consenus peak.
+    /// Internal function that should be called after updating the raw peaks of the aggregator.
     fn update_consensus_peak(&mut self) {
         let starts: Vec<u64> = self.peaks.iter().map(PeakData::start).collect();
         let ends: Vec<u64> = self.peaks.iter().map(PeakData::end).collect();
@@ -162,6 +178,7 @@ fn u64_median(mut values: Vec<u64>) -> u64 {
 }
 
 #[derive(Getters)]
+/// A peak merger that combines raw peaks into consesnus peaks.
 pub struct GipfelkreuzerPeakMerger {
     #[getset(get = "pub")]
     bins: Vec<PeakBin>,
@@ -169,6 +186,10 @@ pub struct GipfelkreuzerPeakMerger {
 
 impl GipfelkreuzerPeakMerger {
     /// Merges adjacent and overlapping peaks into consensus peaks based on their summit proximity.
+    ///
+    /// # Parameters
+    ///
+    /// * `peaks` - the raw peaks to merge
     pub fn new(mut peaks: Vec<PeakData>) -> Self {
         log::info!("Creating a peak merger with {} peaks.", peaks.len());
         log::debug!("Sorting peaks by start position.");
@@ -234,5 +255,115 @@ mod tests {
     #[should_panic]
     fn test_u64_median_empty() {
         u64_median(Vec::new());
+    }
+
+    #[test]
+    fn test_consensus_peak_aggregator_from_peak_data() {
+        let peak = PeakData::new(42, 42u64, 84u64, 63u64).unwrap();
+        let aggregator = ConsensusPeakAggregator::from(peak);
+        assert_eq!(peak.id(), aggregator.id());
+        assert_eq!(peak.length(), aggregator.length());
+        assert_eq!(peak.summit(), aggregator.summit());
+        let consensus: PeakData = aggregator.into();
+        assert_eq!(consensus, peak);
+    }
+
+    #[test]
+    fn test_consensus_peak_aggregator_into_peak_data() {
+        let start_peak = PeakData::new(42, 42u64, 84u64, 63u64).unwrap();
+        let peaks: Vec<ConsensusPeakAggregator> = vec![
+            PeakData::new(43, 44u64, 85u64, 61u64).unwrap().into(),
+            PeakData::new(44, 43u64, 83u64, 62u64).unwrap().into(),
+        ];
+        let expected_consensus_peak = PeakData::new(42, 43u64, 84u64, 62u64).unwrap();
+        let mut aggregator = ConsensusPeakAggregator::from(start_peak);
+        for peak in peaks {
+            assert!(aggregator.try_aggregate(peak).is_none());
+        }
+        let consensus: PeakData = aggregator.into();
+        assert_eq!(consensus, expected_consensus_peak);
+    }
+
+    #[test]
+    fn test_consensus_peak_aggregator_try_aggregate_single() {
+        let start_peak = PeakData::new(42, 42u64, 84u64, 63u64).unwrap();
+        let peaks: Vec<ConsensusPeakAggregator> = vec![
+            PeakData::new(43, 44u64, 85u64, 61u64).unwrap().into(),
+            PeakData::new(44, 43u64, 83u64, 65u64).unwrap().into(),
+            PeakData::new(90, 90u64, 120u64, 100u64).unwrap().into(),
+        ];
+        let expected_consensus_peak = PeakData::new(42, 43u64, 84u64, 63u64).unwrap();
+        let mut aggregator = ConsensusPeakAggregator::from(start_peak);
+        assert_eq!(aggregator.number_aggregated_peaks(), 1);
+        assert!(aggregator.try_aggregate(peaks[0].clone()).is_none());
+        assert_eq!(aggregator.summit(), 62u64);
+        assert_eq!(aggregator.length(), 42);
+        assert_eq!(aggregator.number_aggregated_peaks(), 2);
+        assert!(aggregator.try_aggregate(peaks[1].clone()).is_none());
+        assert_eq!(aggregator.summit(), 63u64);
+        assert_eq!(aggregator.length(), 42);
+        assert_eq!(aggregator.number_aggregated_peaks(), 3);
+        assert_eq!(aggregator.try_aggregate(peaks[2].clone()), Some(peaks[2].clone()));
+        assert_eq!(aggregator.number_aggregated_peaks(), 3);
+        assert_eq!(aggregator.summit(), 63u64);
+        assert_eq!(aggregator.length(), 42);
+
+        let consensus: PeakData = aggregator.into();
+        assert_eq!(consensus, expected_consensus_peak);
+    }
+
+    #[test]
+    fn test_consensus_peak_aggregator_try_aggregate_multiple() {
+        let start_peak = PeakData::new(42, 42u64, 84u64, 63u64).unwrap();
+        let peaks: Vec<ConsensusPeakAggregator> = vec![
+            PeakData::new(43, 44u64, 85u64, 61u64).unwrap().into(),
+            PeakData::new(44, 43u64, 83u64, 65u64).unwrap().into(),
+        ];
+        let mut aggregator = ConsensusPeakAggregator::from(start_peak);
+        for peak in peaks {
+            assert!(aggregator.try_aggregate(peak).is_none());
+        }
+
+        // Creates a consensus peak that should merge
+        let start_peak_merge = PeakData::new(45, 39u64, 84u64, 64u64).unwrap();
+        let peaks_merge: Vec<ConsensusPeakAggregator> = vec![
+            PeakData::new(46, 34u64, 95u64, 64u64).unwrap().into(),
+            PeakData::new(47, 40u64, 93u64, 65u64).unwrap().into(),
+        ];
+        let mut aggregator_merge = ConsensusPeakAggregator::from(start_peak_merge);
+        for peak in peaks_merge {
+            assert!(aggregator_merge.try_aggregate(peak).is_none());
+        }
+
+        // Creates a consensus peak that should not merge.
+        let start_peak_no_merge = PeakData::new(420, 420u64, 840u64, 630u64).unwrap();
+        let peaks_no_merge: Vec<ConsensusPeakAggregator> = vec![
+            PeakData::new(430, 440u64, 850u64, 610u64).unwrap().into(),
+            PeakData::new(440, 430u64, 830u64, 650u64).unwrap().into(),
+        ];
+        let mut aggregator_no_merge = ConsensusPeakAggregator::from(start_peak_no_merge);
+        for peak in peaks_no_merge {
+            assert!(aggregator_no_merge.try_aggregate(peak).is_none());
+        }
+        
+        assert_eq!(aggregator.number_aggregated_peaks(), 3);
+        assert_eq!(aggregator.summit(), 63u64);
+        assert_eq!(aggregator.length(), 42);
+
+        // Adds a consensus peak that consists of multiple raw peaks.
+        assert!(aggregator.try_aggregate(aggregator_merge).is_none());
+        assert_eq!(aggregator.number_aggregated_peaks(), 6);
+        assert_eq!(aggregator.summit(), 64u64);
+        assert_eq!(aggregator.length(), 44);
+
+        // Fails to add another peak.
+        assert_eq!(aggregator.try_aggregate(aggregator_no_merge.clone()), Some(aggregator_no_merge));
+        assert_eq!(aggregator.number_aggregated_peaks(), 6);
+        assert_eq!(aggregator.summit(), 64u64);
+        assert_eq!(aggregator.length(), 44);
+
+        let expected_consensus_peak = PeakData::new(42, 41u64, 84u64, 64u64).unwrap();
+        let consensus: PeakData = aggregator.into();
+        assert_eq!(consensus, expected_consensus_peak);
     }
 }
