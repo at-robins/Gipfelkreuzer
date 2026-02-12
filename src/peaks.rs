@@ -3,7 +3,6 @@
 use crate::{
     arguments::CommandLineArguments,
     error::{ApplicationError, ApplicationErrorType},
-    peaks::gipfelkreuzer::GipfelkreuzerPeakMerger,
 };
 use getset::{CopyGetters, Getters};
 
@@ -137,6 +136,41 @@ impl PeakBin {
             Some(peak_data)
         }
     }
+
+    /// Groups the specified peaks into respective bins based on their overlap and adjacency.
+    ///
+    /// # Parameters
+    ///
+    /// * `peaks` - the peaks to group into bins
+    pub fn bin_peaks(mut peaks: Vec<PeakData>) -> Vec<Self> {
+        log::info!("Creating peak bins from {} peaks.", peaks.len());
+        log::debug!("Sorting peaks by start position.");
+        peaks.sort_by(|a, b| a.start().cmp(&b.start()));
+        let mut bins: Vec<PeakBin> = Vec::new();
+        log::debug!("Inserting peaks...");
+        for peak in peaks {
+            log::debug!("Inserting peak {:?}...", peak);
+            if let Some(current_bin) = bins.last_mut() {
+                log::debug!("Checking bin [{}, {}]...", current_bin.start(), current_bin.end());
+                if let Some(peak) = current_bin.try_insert(peak) {
+                    // Creates a new bin if the insertion failed into the old one.
+                    log::debug!("Creating new peak bin for peak {:?}.", peak);
+                    bins.push(PeakBin::new(peak));
+                } else {
+                    log::debug!(
+                        "Inserted peak into bin [{}, {}]",
+                        current_bin.start(),
+                        current_bin.end()
+                    );
+                }
+            } else {
+                // Creates an initial bin if there are none yet.
+                log::debug!("Creating initial peak bin...");
+                bins.push(PeakBin::new(peak));
+            }
+        }
+        bins
+    }
 }
 
 impl From<PeakBin> for Vec<PeakData> {
@@ -170,11 +204,11 @@ impl ConsensusPeakAlgorithm {
         algorithm_arguments: &CommandLineArguments,
     ) -> Result<Vec<PeakData>, ApplicationError> {
         match self {
-            ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(GipfelkreuzerPeakMerger::new(peaks)
-                .consensus_peaks(
-                    algorithm_arguments.max_merge_iterations(),
-                    algorithm_arguments.min_peaks_per_consensus(),
-                )),
+            ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(gipfelkreuzer::consensus_peaks(
+                peaks,
+                algorithm_arguments.max_merge_iterations(),
+                algorithm_arguments.min_peaks_per_consensus(),
+            )),
             ConsensusPeakAlgorithm::Simple => {
                 simple::merge_peaks(peaks, algorithm_arguments.min_peaks_per_consensus())
             },

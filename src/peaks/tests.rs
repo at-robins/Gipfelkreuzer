@@ -292,3 +292,35 @@ fn test_peak_bin_into_peak_vec() {
     let peaks_in_bin: Vec<PeakData> = peak_bin.into();
     assert_eq!(peaks_in_bin, peaks);
 }
+
+#[test]
+fn test_peak_bin_bin_peaks() {
+    let peaks = vec![
+        PeakData::new(0, 12u64, 22u64, 18u64).unwrap(),
+        PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+        PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+        PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+        PeakData::new(4, 270u64, 290u64, 277u64).unwrap(),
+        PeakData::new(5, 271u64, 291u64, 276u64).unwrap(),
+        PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+    ];
+
+    let bins = PeakBin::bin_peaks(peaks.clone());
+
+    assert_eq!(bins.len(), 3);
+
+    assert_eq!(bins[0].peaks().len(), 4);
+    for peak in bins[0].peaks() {
+        assert!(&peaks[0..=3].contains(peak));
+    }
+
+    assert_eq!(bins[1].peaks().len(), 2);
+    for peak in bins[1].peaks() {
+        assert!(&peaks[4..=5].contains(peak));
+    }
+
+    assert_eq!(bins[2].peaks().len(), 1);
+    for peak in bins[2].peaks() {
+        assert!(&peaks[6..].contains(peak));
+    }
+}

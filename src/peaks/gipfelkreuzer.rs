@@ -1,7 +1,5 @@
 //! This module contains the specifics of the Gipfelkreuzer consensus peak generation algorithm.
 
-use getset::Getters;
-
 use crate::peaks::{PeakBin, PeakData};
 
 /// Converts a [`PeakBin`] into its respective consensus peaks.
@@ -68,6 +66,22 @@ fn bin_to_consensus_peaks_internal(
                 .expect("The consensus aggregator must have been created at this point."),
         );
         remaining_peaks = retained_peaks;
+    }
+    consensus_peaks
+}
+
+pub fn consensus_peaks(
+    peaks: Vec<PeakData>,
+    max_iterations: usize,
+    min_peaks_per_consensus: usize,
+) -> Vec<PeakData> {
+    let mut consensus_peaks = Vec::new();
+    for bin in PeakBin::bin_peaks(peaks) {
+        consensus_peaks.extend(bin_to_consensus_peaks(
+            bin,
+            max_iterations,
+            min_peaks_per_consensus,
+        ));
     }
     consensus_peaks
 }
@@ -174,66 +188,6 @@ fn u64_median(mut values: Vec<u64>) -> u64 {
         (values[midpoint] + values[midpoint + 1]) / 2
     } else {
         values[midpoint]
-    }
-}
-
-#[derive(Getters)]
-/// A peak merger that combines raw peaks into consesnus peaks.
-pub struct GipfelkreuzerPeakMerger {
-    #[getset(get = "pub")]
-    bins: Vec<PeakBin>,
-}
-
-impl GipfelkreuzerPeakMerger {
-    /// Merges adjacent and overlapping peaks into consensus peaks based on their summit proximity.
-    ///
-    /// # Parameters
-    ///
-    /// * `peaks` - the raw peaks to merge
-    pub fn new(mut peaks: Vec<PeakData>) -> Self {
-        log::info!("Creating a peak merger with {} peaks.", peaks.len());
-        log::debug!("Sorting peaks by start position.");
-        peaks.sort_by(|a, b| a.start().cmp(&b.start()));
-        let mut bins: Vec<PeakBin> = Vec::new();
-        log::debug!("Inserting peaks...");
-        for peak in peaks {
-            log::debug!("Inserting peak {:?}...", peak);
-            if let Some(current_bin) = bins.last_mut() {
-                log::debug!("Checking bin [{}, {}]...", current_bin.start(), current_bin.end());
-                if let Some(peak) = current_bin.try_insert(peak) {
-                    // Creates a new bin if the insertion failed into the old one.
-                    log::debug!("Creating new peak bin for peak {:?}.", peak);
-                    bins.push(PeakBin::new(peak));
-                } else {
-                    log::debug!(
-                        "Inserted peak into bin [{}, {}]",
-                        current_bin.start(),
-                        current_bin.end()
-                    );
-                }
-            } else {
-                // Creates an initial bin if there are none yet.
-                log::debug!("Creating initial peak bin...");
-                bins.push(PeakBin::new(peak));
-            }
-        }
-        Self { bins }
-    }
-
-    pub fn consensus_peaks(
-        self,
-        max_iterations: usize,
-        min_peaks_per_consensus: usize,
-    ) -> Vec<PeakData> {
-        let mut consensus_peaks = Vec::new();
-        for bin in self.bins {
-            consensus_peaks.extend(bin_to_consensus_peaks(
-                bin,
-                max_iterations,
-                min_peaks_per_consensus,
-            ));
-        }
-        consensus_peaks
     }
 }
 
@@ -345,7 +299,7 @@ mod tests {
         for peak in peaks_no_merge {
             assert!(aggregator_no_merge.try_aggregate(peak).is_none());
         }
-        
+
         assert_eq!(aggregator.number_aggregated_peaks(), 3);
         assert_eq!(aggregator.summit(), 63u64);
         assert_eq!(aggregator.length(), 42);
@@ -357,7 +311,10 @@ mod tests {
         assert_eq!(aggregator.length(), 44);
 
         // Fails to add another peak.
-        assert_eq!(aggregator.try_aggregate(aggregator_no_merge.clone()), Some(aggregator_no_merge));
+        assert_eq!(
+            aggregator.try_aggregate(aggregator_no_merge.clone()),
+            Some(aggregator_no_merge)
+        );
         assert_eq!(aggregator.number_aggregated_peaks(), 6);
         assert_eq!(aggregator.summit(), 64u64);
         assert_eq!(aggregator.length(), 44);

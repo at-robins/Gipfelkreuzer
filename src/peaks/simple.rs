@@ -1,9 +1,6 @@
 //! This module contains the specifics of the simple peak merging algorithm.
 
-use crate::{
-    error::ApplicationError,
-    peaks::{PeakData, gipfelkreuzer::GipfelkreuzerPeakMerger},
-};
+use crate::{error::ApplicationError, peaks::{PeakBin, PeakData}};
 
 /// Merges overlapping and adjacent peaks.
 /// Returns an error if the merging process fails.
@@ -14,12 +11,11 @@ pub fn merge_peaks(
     peaks: Vec<PeakData>,
     min_peaks_per_bin: usize,
 ) -> Result<Vec<PeakData>, ApplicationError> {
-    let complex_merger = GipfelkreuzerPeakMerger::new(peaks);
-    let mut merged_peaks = Vec::with_capacity(complex_merger.bins().len());
+    let bins = PeakBin::bin_peaks(peaks);
+    let mut merged_peaks = Vec::with_capacity(bins.len());
 
-    for (bin_index, bin) in complex_merger
-        .bins()
-        .iter()
+    for (bin_index, bin) in bins
+        .into_iter()
         .filter(|bin| bin.peaks().len() >= min_peaks_per_bin)
         .enumerate()
     {
