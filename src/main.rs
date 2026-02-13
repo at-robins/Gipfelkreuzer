@@ -243,6 +243,43 @@ mod tests {
     }
 
     #[test]
+    fn test_main_internal_default_with_summit_14_fields_iter_20() {
+        test_main_internal(
+            &vec!["input_test_main_internal_input_iter_01.narrowPeak"],
+            "test_main_internal_default_with_summit_14_fields_iter_20.bed",
+            &vec![
+                "-a".to_string(),
+                "gipfelkreuzer".to_string(),
+                "-m".to_string(),
+                "20".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![("chr1".to_string(), PeakData::new(1, 655u64, 731u64, 699u64).unwrap())],
+        );
+    }
+
+    #[test]
+    fn test_main_internal_default_with_summit_14_fields_iter_0() {
+        test_main_internal(
+            &vec!["input_test_main_internal_input_iter_01.narrowPeak"],
+            "test_main_internal_default_with_summit_14_fields_iter_0.bed",
+            &vec![
+                "-a".to_string(),
+                "gipfelkreuzer".to_string(),
+                "-m".to_string(),
+                "0".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(0, 650u64, 751u64, 700u64).unwrap()),
+                ("chr1".to_string(), PeakData::new(1, 661u64, 701u64, 694u64).unwrap()),
+            ],
+        );
+    }
+
+    #[test]
     fn test_main_internal_help() {
         let cla_short = CommandLineArguments::try_parse_from(vec!["Gipfelkreuzer", "-h"]);
         assert!(main_internal(cla_short, true).is_ok());
