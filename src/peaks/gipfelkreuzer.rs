@@ -38,6 +38,10 @@ fn bin_to_consensus_peaks(
 
 /// Converts the peak bin into its respective consensus peaks.
 /// Internal function logic to allow easy iterative consensus peak generation.
+///
+/// # Parameters
+///
+/// * `peaks` - the input peaks
 fn bin_to_consensus_peaks_internal(
     mut peaks: Vec<ConsensusPeakAggregator>,
 ) -> Vec<ConsensusPeakAggregator> {
@@ -70,6 +74,13 @@ fn bin_to_consensus_peaks_internal(
     consensus_peaks
 }
 
+/// Creates consensus peaks from raw peaks based on summit proximity.
+///
+/// # Parameters
+///
+/// * `peaks` - the raw input peaks
+/// * `max_iterations` - the maximum number of merging iterations before the process is aborted and the respective peak returned
+/// * `min_peaks_per_consensus` - the minimum number of raw peaks required to form a consensus peak
 pub fn consensus_peaks(
     peaks: Vec<PeakData>,
     max_iterations: usize,
@@ -322,5 +333,111 @@ mod tests {
         let expected_consensus_peak = PeakData::new(42, 41u64, 84u64, 64u64).unwrap();
         let consensus: PeakData = aggregator.into();
         assert_eq!(consensus, expected_consensus_peak);
+    }
+
+    #[test]
+    fn test_consensus_peaks() {
+        let peaks = vec![
+            PeakData::new(0, 12u64, 22u64, 18u64).unwrap(),
+            PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+            PeakData::new(7, 13u64, 22u64, 16u64).unwrap(),
+            PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+            PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+            PeakData::new(4, 270u64, 290u64, 277u64).unwrap(),
+            PeakData::new(5, 271u64, 291u64, 276u64).unwrap(),
+            PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+        ];
+        let consensus = consensus_peaks(peaks, 20, 0);
+
+        let expected_consensus_peaks = vec![
+            PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+            PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+            PeakData::new(7, 12u64, 22u64, 17u64).unwrap(),
+            PeakData::new(4, 270u64, 290u64, 276u64).unwrap(),
+            PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+        ];
+        assert_eq!(consensus, expected_consensus_peaks);
+    }
+
+    #[test]
+    fn test_consensus_peaks_filter() {
+        let peaks = vec![
+            PeakData::new(0, 12u64, 22u64, 18u64).unwrap(),
+            PeakData::new(1, 11u64, 21u64, 17u64).unwrap(),
+            PeakData::new(7, 13u64, 22u64, 16u64).unwrap(),
+            PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+            PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+            PeakData::new(4, 270u64, 290u64, 277u64).unwrap(),
+            PeakData::new(5, 271u64, 291u64, 276u64).unwrap(),
+            PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+        ];
+        {
+            let consensus = consensus_peaks(peaks.clone(), 20, 0);
+
+            let expected_consensus_peaks = vec![
+                PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+                PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+                PeakData::new(7, 12u64, 22u64, 17u64).unwrap(),
+                PeakData::new(4, 270u64, 290u64, 276u64).unwrap(),
+                PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+            ];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
+        {
+            let consensus = consensus_peaks(peaks.clone(), 20, 1);
+
+            let expected_consensus_peaks = vec![
+                PeakData::new(3, 27u64, 29u64, 27u64).unwrap(),
+                PeakData::new(2, 23u64, 26u64, 24u64).unwrap(),
+                PeakData::new(7, 12u64, 22u64, 17u64).unwrap(),
+                PeakData::new(4, 270u64, 290u64, 276u64).unwrap(),
+                PeakData::new(6, 2700u64, 2900u64, 2770u64).unwrap(),
+            ];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
+        {
+            let consensus = consensus_peaks(peaks.clone(), 20, 2);
+
+            let expected_consensus_peaks = vec![
+                PeakData::new(7, 12u64, 22u64, 17u64).unwrap(),
+                PeakData::new(4, 270u64, 290u64, 276u64).unwrap(),
+            ];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
+        {
+            let consensus = consensus_peaks(peaks, 20, 3);
+
+            let expected_consensus_peaks = vec![PeakData::new(7, 12u64, 22u64, 17u64).unwrap()];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
+    }
+
+    #[test]
+    fn test_consensus_peaks_iter() {
+        let peaks = vec![
+            PeakData::new(0, 698u64, 711u64, 701u64).unwrap(),
+            PeakData::new(1, 661u64, 701u64, 694u64).unwrap(),
+            PeakData::new(7, 650u64, 751u64, 700u64).unwrap(),
+            PeakData::new(7, 649u64, 763u64, 699u64).unwrap(),
+        ];
+
+        {
+            let consensus = consensus_peaks(peaks.clone(), 0, 0);
+    
+            let expected_consensus_peaks = vec![
+                PeakData::new(0, 650u64, 751u64, 700u64).unwrap(),
+                PeakData::new(1, 661u64, 701u64, 694u64).unwrap(),
+            ];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
+
+        {
+            let consensus = consensus_peaks(peaks.clone(), 20, 0);
+    
+            let expected_consensus_peaks = vec![
+                PeakData::new(1, 655u64, 731u64, 699u64).unwrap(),
+            ];
+            assert_eq!(consensus, expected_consensus_peaks);
+        }
     }
 }
