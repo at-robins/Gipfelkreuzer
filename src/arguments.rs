@@ -41,14 +41,20 @@ pub struct CommandLineArguments {
     /// The algorithm to use for creating consensus peaks.
     /// The Gipfelkreuzer algorithm ("gipfelkreuzer") will use summit proximity as a merge criterium.
     /// The simple merge algorithm ("simple") only merges all overlapping and adjacent peaks independent of their summit information or size.
+    /// The harmonised algorithm ("harmonised") uses fixed summit distances to merge peaks as proposed by Cherchame et al. in 2025 (https://www.protocols.io/view/atac-seq-methods-for-consensus-peak-generation-to-36wgq326olk5/v1).
     #[arg(short, long, default_value_t = ConsensusPeakAlgorithm::Gipfelkreuzer)]
     #[getset(get_copy = "pub")]
     algorithm: ConsensusPeakAlgorithm,
     /// The minimum number of raw peaks per consensus peak to consider it reproducible.
     /// If less peaks are used for the generation of a consensus peak it is discarded.
-    #[arg(short='n', long, default_value_t = 0)]
+    #[arg(short = 'n', long, default_value_t = 0)]
     #[getset(get_copy = "pub")]
     min_peaks_per_consensus: usize,
+    /// The distance from the summit that is used to generate peak start and end coordinates
+    /// by the harmonised algorithm.
+    #[arg(short = 'd', long, default_value_t = 250)]
+    #[getset(get_copy = "pub")]
+    harmonising_distance: u64,
 }
 
 impl CommandLineArguments {

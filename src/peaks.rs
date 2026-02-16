@@ -190,6 +190,11 @@ pub enum ConsensusPeakAlgorithm {
     /// A simple merge algorithm.
     /// Overlapping and adjacent peaks are merged to create consensus peaks.
     Simple,
+    /// A fixed distance algorithm proposed by
+    /// [Cherchame 2025](https://www.protocols.io/view/atac-seq-methods-for-consensus-peak-generation-to-36wgq326olk5/v1).
+    /// Creates consensus peaks by harmonising peaks based on ther summit
+    /// and merging overlapping and adjacent ones.
+    Harmonised,
 }
 
 impl ConsensusPeakAlgorithm {
@@ -212,6 +217,11 @@ impl ConsensusPeakAlgorithm {
             ConsensusPeakAlgorithm::Simple => {
                 simple::merge_peaks(peaks, algorithm_arguments.min_peaks_per_consensus())
             },
+            ConsensusPeakAlgorithm::Harmonised => harmoniser::harmonised_consensus_peaks(
+                peaks,
+                algorithm_arguments.harmonising_distance(),
+                algorithm_arguments.min_peaks_per_consensus(),
+            ),
         }
     }
 }
@@ -221,6 +231,7 @@ impl std::fmt::Display for ConsensusPeakAlgorithm {
         let name = match self {
             ConsensusPeakAlgorithm::Gipfelkreuzer => "gipfelkreuzer",
             ConsensusPeakAlgorithm::Simple => "simple",
+            ConsensusPeakAlgorithm::Harmonised => "harmonised",
         };
         write!(f, "{}", name)
     }
@@ -242,7 +253,7 @@ fn is_continuous_range(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bo
 }
 
 pub mod gipfelkreuzer;
-// pub mod harmoniser;
+pub mod harmoniser;
 pub mod simple;
 
 #[cfg(test)]
