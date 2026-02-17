@@ -280,6 +280,73 @@ mod tests {
     }
 
     #[test]
+    fn test_main_internal_with_summit_14_fields_harmoniser() {
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_with_summit_14_fields_harmoniser.bed",
+            &vec![
+                "-a".to_string(),
+                "harmonised".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(0, 443u64, 1155u64, 799u64).unwrap()),
+            ],
+        );
+    }
+
+    #[test]
+    fn test_main_internal_with_summit_14_fields_harmoniser_distance() {
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_with_summit_14_fields_harmoniser_distance.bed",
+            &vec![
+                "-a".to_string(),
+                "harmonised".to_string(),
+                "-d".to_string(),
+                "15".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(0, 678u64, 745u64, 711u64).unwrap()),
+                ("chr1".to_string(), PeakData::new(1, 889u64, 920u64, 904u64).unwrap()),
+            ],
+        );
+    }
+
+    #[test]
+    fn test_main_internal_with_summit_14_fields_harmoniser_min() {
+        test_main_internal(
+            &vec![
+                "input_test_main_internal_input_01.narrowPeak",
+                "input_test_main_internal_input_02.narrowPeak",
+            ],
+            "test_main_internal_with_summit_14_fields_harmoniser_min.bed",
+            &vec![
+                "-a".to_string(),
+                "harmonised".to_string(),
+                "-d".to_string(),
+                "15".to_string(),
+                "-n".to_string(),
+                "4".to_string(),
+                "-b".to_string(),
+                "14".to_string(),
+            ],
+            vec![
+                ("chr1".to_string(), PeakData::new(0, 678u64, 745u64, 711u64).unwrap()),
+            ],
+        );
+    }
+
+    #[test]
     fn test_main_internal_help() {
         let cla_short = CommandLineArguments::try_parse_from(vec!["Gipfelkreuzer", "-h"]);
         assert!(main_internal(cla_short, true).is_ok());
