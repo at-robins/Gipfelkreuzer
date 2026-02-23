@@ -22,6 +22,7 @@ pub fn bed_to_peaks<T: AsRef<Path>>(
     let mut peak_map: HashMap<String, Vec<PeakData>> = HashMap::new();
     let mut current_peak_id = 0;
     for path in paths {
+        log::info!("Parsing {}.", path.as_ref().display());
         let file = File::open(&path).map_err(|err| {
             ApplicationError::from(err).chain(format!(
                 "The input file \"{}\" could not be opened.",

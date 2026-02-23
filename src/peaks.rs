@@ -208,6 +208,7 @@ impl ConsensusPeakAlgorithm {
         peaks: Vec<PeakData>,
         algorithm_arguments: &CommandLineArguments,
     ) -> Result<Vec<PeakData>, ApplicationError> {
+        log::debug!("Generating consensus peaks using algorithm: {}", self);
         match self {
             ConsensusPeakAlgorithm::Gipfelkreuzer => Ok(gipfelkreuzer::consensus_peaks(
                 peaks,

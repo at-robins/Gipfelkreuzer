@@ -423,7 +423,7 @@ mod tests {
 
         {
             let consensus = consensus_peaks(peaks.clone(), 0, 0);
-    
+
             let expected_consensus_peaks = vec![
                 PeakData::new(0, 650u64, 751u64, 700u64).unwrap(),
                 PeakData::new(1, 661u64, 701u64, 694u64).unwrap(),
@@ -433,10 +433,8 @@ mod tests {
 
         {
             let consensus = consensus_peaks(peaks.clone(), 20, 0);
-    
-            let expected_consensus_peaks = vec![
-                PeakData::new(1, 655u64, 731u64, 699u64).unwrap(),
-            ];
+
+            let expected_consensus_peaks = vec![PeakData::new(1, 655u64, 731u64, 699u64).unwrap()];
             assert_eq!(consensus, expected_consensus_peaks);
         }
     }

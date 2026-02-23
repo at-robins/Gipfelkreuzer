@@ -40,23 +40,61 @@ containg your peak files (in this example the directory `io` in the current work
 docker run --rm --name gipfelkreuzer --mount type=bind,source=./io,target=/io gipfelkreuzer:latest -o /io/consensus_peaks.bed /io/called_peaks_sample_1.narrowPeak /io/called_peaks_sample_2.narrowPeak
 ```
 
-# Optional command line arguments
+# Consensus peak generation algorithms
 
-The default values of algorithm specific arguments are optimised for a conventional run and should only be changed when you know exactly what you are doing. For more details run:
+## Gipfelkreuzer peak merging
+
+The default algorithm. Merges peaks based on summit proximity using their width as a proximity estimator. The algorithm specific `--max-merge-iterations` argument has a reasonable default and should only be changed if you know exactly what you are doing.
+
+```bash
+# For example:
+Gipfelkreuzer -a harmonised -m 20 -n 2 -o harmonised_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
+```
+
+| Argument (long)        | Argument (short) | Description                                                          |
+| ---------------------- | ---------------- | -------------------------------------------------------------------- |
+| --max-merge-iterations | -m               | The maximum number of iterative merges for consensus peak generation |
+
+## Simple peak merging
+
+Merges overlapping and directly adjacent peaks using only the start and end coordinates of the peaks.
+
+```bash
+# For example:
+Gipfelkreuzer -a simple -n 2 -o harmonised_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
+```
+
+## Harmonised peak merging
+
+Implementation according to [Cherchame et al. in 2025](https://www.protocols.io/view/atac-seq-methods-for-consensus-peak-generation-to-36wgq326olk5/v1).
+Merges peaks based on summit proximity using a fixed summit distance. Peak shortening for identical peaks was not implemented as it seemed to rely on
+undocumented software behaviour and the specification was unclear on cases with multiple identical peaks. The algorithm specific `--harmonising-distance` argument defaults to the distance specified by the implementation reference but can be set as seen fit.
+
+```bash
+# For example:
+Gipfelkreuzer -a harmonised -d 250 -n 2 -o harmonised_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
+```
+
+| Argument (long)        | Argument (short) | Description                                                              |
+| ---------------------- | ---------------- | ------------------------------------------------------------------------ |
+| --harmonising-distance | -d               | The maximum distance between summits to merge them into a consensus peak |
+
+# Non algorithm specifc optional command line arguments
+
+For more details run:
 
 ```bash
 Gipfelkreuzer --help
 ```
 
-| Argument (long)           | Argument (short) | Description                                                                                                 |
-| ------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| --output-file             | -o               | The output file path                                                                                        |
-| --bed-output-columns      | -b               | The number of columns to output per consensus peak                                                          |
-| --algorithm               | -a               | The algorithm to use for consensus peak generation                                                          |
-| --max-merge-iterations    | -m               | The maximum number of iterative merges for consensus peak generation when using the Gipfelkreuzer algorithm |
-| --min-peaks-per-consensus | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible   |
-| --log-level               | -l               | The log level to print while running the application                                                        |
+| Argument (long)           | Argument (short) | Description                                                                                               |
+| ------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| --output-file             | -o               | The output file path                                                                                      |
+| --bed-output-columns      | -b               | The number of columns to output per consensus peak                                                        |
+| --algorithm               | -a               | The algorithm to use for consensus peak generation                                                        |
+| --min-peaks-per-consensus | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible |
+| --log-level               | -l               | The log level to print while running the application                                                      |
 
 # Cite
 
-Schenk, R. P., & Wiedemann, G. M. (2026). Gipfelkreuzer: Automated consensus peak generation (0.1). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)
+Schenk, R. P., & Wiedemann, G. M. (2026). Gipfelkreuzer: Automated consensus peak generation (1.0.0). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)

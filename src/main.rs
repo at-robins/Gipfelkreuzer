@@ -64,6 +64,7 @@ fn main_internal(
     }
 
     let command_line_arguments = cl_args_result?;
+    log::debug!("Running with arguments: {:?}", command_line_arguments);
     let peaks_by_chromosome =
         bed_to_peaks(command_line_arguments.input_files()).map_err(|err| {
             err.chain(format!(
@@ -73,13 +74,13 @@ fn main_internal(
         })?;
     let mut consenus: HashMap<String, Vec<PeakData>> = HashMap::new();
     for (chromosome, peaks) in peaks_by_chromosome {
-        consenus.insert(
-            chromosome,
-            command_line_arguments
-                .algorithm()
-                .consensus_peaks(peaks, &command_line_arguments)
-                .map_err(|err| err.chain("Failed to create consensus peaks."))?,
-        );
+        log::info!("Processing {} raw peaks for chromosome {}.", peaks.len(), chromosome);
+        let consensus_peaks = command_line_arguments
+            .algorithm()
+            .consensus_peaks(peaks, &command_line_arguments)
+            .map_err(|err| err.chain("Failed to create consensus peaks."))?;
+        log::info!("Generated {} consensus peaks.", consensus_peaks.len());
+        consenus.insert(chromosome, consensus_peaks);
     }
     write_peaks_to_bed(
         command_line_arguments.output_file(),
@@ -92,6 +93,7 @@ fn main_internal(
             command_line_arguments.output_file().display(),
         ))
     })?;
+    log::info!("Finished successfully.");
     Ok(())
 }
 
@@ -293,9 +295,7 @@ mod tests {
                 "-b".to_string(),
                 "14".to_string(),
             ],
-            vec![
-                ("chr1".to_string(), PeakData::new(0, 443u64, 1155u64, 799u64).unwrap()),
-            ],
+            vec![("chr1".to_string(), PeakData::new(0, 443u64, 1155u64, 799u64).unwrap())],
         );
     }
 
@@ -340,9 +340,7 @@ mod tests {
                 "-b".to_string(),
                 "14".to_string(),
             ],
-            vec![
-                ("chr1".to_string(), PeakData::new(0, 678u64, 745u64, 711u64).unwrap()),
-            ],
+            vec![("chr1".to_string(), PeakData::new(0, 678u64, 745u64, 711u64).unwrap())],
         );
     }
 

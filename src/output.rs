@@ -59,6 +59,7 @@ pub fn write_peaks_to_bed<T: AsRef<Path>>(
     peaks: &HashMap<String, Vec<PeakData>>,
     fields: usize,
 ) -> Result<(), ApplicationError> {
+    log::info!("Writing consensus peaks to {}.", path.as_ref().display());
     // Creates the specified output path.
     let parent_directory = path.as_ref().parent().ok_or(ApplicationError::new(
         ApplicationErrorType::OutputOperationError,
