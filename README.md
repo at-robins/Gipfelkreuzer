@@ -13,6 +13,18 @@ Summit information is expected at column 10 of the input BED file as offset from
 in the [narrowPeak format](https://genome.ucsc.edu/FAQ/FAQformat.html#format12).
 If no summit information is present the mean position is used as summit approximation.
 
+# Installation
+
+The application can be downloaded from the [release page](https://github.com/at-robins/Gipfelkreuzer/releases).
+Automatically generated installation instructions are also available there.
+
+Alternatively, the application can be built from source when a Rust toolchain is installed:
+
+```bash
+# Builds the application from the source directory.
+cargo build --release
+```
+
 # Run
 
 You can either directly use the executable:
