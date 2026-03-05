@@ -18,7 +18,7 @@ pub struct CommandLineArguments {
     #[arg(required = true)]
     #[getset(get = "pub")]
     input_files: Vec<PathBuf>,
-    /// The output file path [default: the input file path with the suffix "_consensus_peaks.bed"]
+    /// The output file path [default: the current system time with the suffix "_consensus_peaks.bed"]
     #[arg(short, long)]
     output_file: Option<PathBuf>,
     /// The logging level. Extensive logging might slow down software execution [possible values: TRACE, DEBUG, INFO, WARN, ERROR]

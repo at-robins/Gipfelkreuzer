@@ -2,10 +2,9 @@
 
 use getset::{CopyGetters, Getters};
 use log::error;
-use serde::{Deserialize, Serialize};
 
 /// An application wide error.
-#[derive(Debug, Clone, Getters, CopyGetters, Serialize, Deserialize)]
+#[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct ApplicationError {
     /// The error type.
     #[getset(get_copy = "pub")]
@@ -16,7 +15,7 @@ pub struct ApplicationError {
 }
 
 /// An application wide error type.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone)]
 pub enum ApplicationErrorType {
     /// An generic error implying an internal problem.
     InternalError,
