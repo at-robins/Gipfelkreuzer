@@ -106,7 +106,3 @@ Gipfelkreuzer --help
 | --algorithm               | -a               | The algorithm to use for consensus peak generation                                                        |
 | --min-peaks-per-consensus | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible |
 | --log-level               | -l               | The log level to print while running the application                                                      |
-
-# Cite
-
-Schenk, R. P., & Wiedemann, G. M. (2026). Gipfelkreuzer: Automated consensus peak generation (1.0.1). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)
