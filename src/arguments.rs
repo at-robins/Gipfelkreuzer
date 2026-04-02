@@ -33,7 +33,7 @@ pub struct CommandLineArguments {
     /// The maximum number of consensus peak merging iterations.
     /// A value of "0" means consensus peaks are only called once and not
     /// iteratively merged. This will yield the highest sensitivity, but
-    /// also poteintially result in multiple slight variations of the same peaks
+    /// also potentially result in multiple slight variations of the same peaks
     /// being present in the output.
     #[arg(short, long, default_value_t = 20)]
     #[getset(get_copy = "pub")]
