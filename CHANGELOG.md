@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.2
+
+* Updated citation information
+* Updated dependencies
+
 ## 1.0.1
 
 * Updated some ```--help``` information
