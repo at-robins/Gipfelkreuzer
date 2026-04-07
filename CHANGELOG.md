@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.3
+
+* Updated ReadMe
+
 ## 1.0.2
 
 * Updated citation information

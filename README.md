@@ -60,7 +60,7 @@ The default algorithm. Merges peaks based on summit proximity using their width 
 
 ```bash
 # For example:
-Gipfelkreuzer -a harmonised -m 20 -n 2 -o harmonised_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
+Gipfelkreuzer -a gipfelkreuzer -m 20 -n 2 -o gipfelkreuzer_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
 ```
 
 | Argument (long)        | Argument (short) | Description                                                          |
@@ -73,7 +73,7 @@ Merges overlapping and directly adjacent peaks using only the start and end coor
 
 ```bash
 # For example:
-Gipfelkreuzer -a simple -n 2 -o harmonised_consensus_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
+Gipfelkreuzer -a simple -n 2 -o simple_merged_peaks.bed called_peaks_sample_1.narrowPeak called_peaks_sample_2.narrowPeak
 ```
 
 ## Harmonised peak merging
@@ -103,10 +103,10 @@ Gipfelkreuzer --help
 | ------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
 | --output-file             | -o               | The output file path                                                                                      |
 | --bed-output-columns      | -b               | The number of columns to output per consensus peak                                                        |
-| --algorithm               | -a               | The algorithm to use for consensus peak generation                                                        |
+| --algorithm               | -a               | The algorithm to use for consensus peak generation ("gipfelkreuzer", "simple" or "harmonised")            |
 | --min-peaks-per-consensus | -n               | The minimum number of incorporated raw peaks needed to consider a consensus peak as valid or reproducible |
 | --log-level               | -l               | The log level to print while running the application                                                      |
 
 # Cite
 
-Schenk, R. P. (2026). Gipfelkreuzer: Automated consensus peak generation (1.0.2). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)
+Schenk, R. P. (2026). Gipfelkreuzer: Automated consensus peak generation (1.0.3). [https://github.com/at-robins/Gipfelkreuzer](https://github.com/at-robins/Gipfelkreuzer)

@@ -1,6 +1,6 @@
 [package]
 name = "Gipfelkreuzer"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 authors = ["at-robins"]
 description = "Creates consensus peaks from raw peaks called on ChIP- or ATAC-Seq data."
