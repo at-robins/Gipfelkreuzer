@@ -66,6 +66,7 @@ impl PeakCounts {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
@@ -88,6 +89,19 @@ mod tests {
         let peak_counts = PeakCounts::new(counts).unwrap();
         assert_eq!(peak_counts.relative_difference_at_indices(3, 4), 0.04);
         assert_eq!(peak_counts.relative_difference_at_indices(7, 6), -0.08);
+    }
+
+    #[test]
+    fn test_peak_counts_monotonicity() {
+        let counts = vec![0, 0, 1, 2, 1, 3, 6, 4, 4, 3, 1];
+        let total_counts: u64 = counts.iter().sum();
+        let monotonicity_differences = vec![0, -1, -1, 1, -2, -3, 0, -2, 0, -1, -2];
+        let monotonicity: Vec<f64> = monotonicity_differences
+            .iter()
+            .map(|value| (*value as f64) / (total_counts as f64))
+            .collect();
+        let peak_counts = PeakCounts::new(counts).unwrap();
+        assert_eq!(peak_counts.monotonicity(), monotonicity);
     }
 
     #[test]
