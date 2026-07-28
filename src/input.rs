@@ -11,7 +11,7 @@ use crate::{error::ApplicationError, peaks::PeakData};
 
 /// Parses BED3+ files according to the [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) definition.
 /// Peak summit information will be extracted from field 10 according to the
-/// [narrowPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format12) fromat definition if present and possible.
+/// [narrowPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format12) format definition if present and possible.
 ///
 /// # Parameters
 ///
