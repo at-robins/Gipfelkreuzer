@@ -1,12 +1,12 @@
 //! This module parses input data.
 
-use std::{fs::File, io::BufReader, path::Path};
+use std::{borrow::Borrow, fs::File, io::BufReader, path::Path};
 
-use crate::data::PeakData;
+use bigtools::{BigWigRead, utils::reopen::ReopenableFile};
+
+use crate::{data::PeakData, monotonicity::PeakCounts};
 
 /// Parses BED3+ files according to the [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) definition.
-/// Peak summit information will be extracted from field 10 according to the
-/// [narrowPeak](https://genome.ucsc.edu/FAQ/FAQformat.html#format12) format definition if present and possible.
 ///
 /// # Parameters
 ///
@@ -66,4 +66,52 @@ pub fn parse_peak_file<T: AsRef<Path>>(path: T) -> Result<Vec<PeakData>, String>
         )?);
     }
     Ok(peaks)
+}
+
+/// Parses BED3+ files according to the [GA4GH BED v1.0](https://github.com/samtools/hts-specs/blob/master/BEDv1.pdf) definition.
+///
+/// # Parameters
+///
+/// * `path` - the input file path
+pub fn parse_count_file<T: AsRef<Path>>(path: T) -> Result<BigWigRead<ReopenableFile>, String> {
+    let file = BigWigRead::open_file(&path).map_err(|err| {
+        format!(
+            "The count input file \"{}\" could not be opened: {}",
+            path.as_ref().display(),
+            err.to_string()
+        )
+    })?;
+
+    Ok(file)
+}
+
+/// Reads [`PeakCounts`] form a count input file.
+/// 
+/// # Parameters
+/// 
+/// * `count_file` - the count input file
+/// * `peak_region` - the region to get counts for
+pub fn peak_counts_for_region<T: Borrow<PeakData>>(
+    count_file: &mut BigWigRead<ReopenableFile>,
+    peak_region: T,
+) -> Result<PeakCounts, String> {
+    let peak_data = peak_region.borrow();
+    let count_file_path = count_file.inner_read().path.display().to_string();
+    let interval = count_file
+        .get_interval(peak_data.chromosome(), peak_data.start() as u32, peak_data.end() as u32)
+        .map_err(|err| {
+            format!(
+                "The peak region {:?} could not be obtained from count input file \"{}\": {}",
+                peak_data,
+                count_file_path,
+                err.to_string()
+            )
+        })?;
+
+    let mut interval_values = Vec::new();
+    for interval_value in interval {
+        interval_values.push(interval_value.map_err(|err| format!("{}", err))?);
+    }
+
+    Ok(PeakCounts::try_from(interval_values)?)
 }

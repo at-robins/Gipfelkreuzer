@@ -1,8 +1,13 @@
 //! This module calculates monotonicity metrics.
 
+use getset::CopyGetters;
+
 /// A peak with counts per base position.
+#[derive(Debug, CopyGetters)]
 pub struct PeakCounts {
     base_counts: Vec<u64>,
+    /// The total number of counts in this peak.
+    #[getset(get_copy = "pub")]
     total_counts: u64,
 }
 
@@ -61,6 +66,44 @@ impl PeakCounts {
             .into_iter()
             .filter(|value| *value > 0.0)
             .sum()
+    }
+}
+
+impl TryFrom<Vec<bigtools::Value>> for PeakCounts {
+    type Error = String;
+
+    fn try_from(mut values: Vec<bigtools::Value>) -> Result<Self, Self::Error> {
+        values.sort_by(|a, b| a.start.cmp(&b.start));
+
+        let mut last_end = None;
+        let mut counts = Vec::new();
+        for value in values {
+            if let Some(last_end_coordinate) = last_end
+                && last_end_coordinate != value.start
+            {
+                return Err(format!(
+                    "Value {:?} is not a continuation of end coordinate {}.",
+                    value, last_end_coordinate
+                ));
+            }
+            last_end = Some(value.end);
+            let stretch_length = usize::try_from(value.end - value.start).map_err(|err| {
+                format!("Genomic count location {:?} is too long: {}", value, err)
+            })?;
+            if value.value < 0.0
+                || value.value > (u64::MAX as f32)
+                || !value.value.is_finite()
+                || value.value.fract() != 0.0
+            {
+                return Err(format!(
+                    "Value {:?} cannot be parsed as genomic location counts.",
+                    value
+                ));
+            }
+            let stretch_value = value.value as u64;
+            counts.extend(vec![stretch_value; stretch_length]);
+        }
+        PeakCounts::new(counts)
     }
 }
 
