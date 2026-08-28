@@ -86,9 +86,9 @@ pub fn parse_count_file<T: AsRef<Path>>(path: T) -> Result<BigWigRead<Reopenable
 }
 
 /// Reads [`PeakCounts`] form a count input file.
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `count_file` - the count input file
 /// * `peak_region` - the region to get counts for
 pub fn peak_counts_for_region<T: Borrow<PeakData>>(
