@@ -21,6 +21,8 @@ pub struct OutputData {
     mean_peak_length: f64,
     #[serde(rename = "mean monotonicity deviation")]
     mean_monotonicity_deviation: f64,
+    #[serde(rename = "median monotonicity deviation")]
+    median_monotonicity_deviation: f64,
     #[serde(rename = "total counts")]
     total_counts: u64,
 }
@@ -63,6 +65,7 @@ impl OutputData {
             median_peak_length,
             mean_peak_length,
             mean_monotonicity_deviation: mean_f64(&monotonicity_values)?,
+            median_monotonicity_deviation: median_f64(monotonicity_values)?,
             total_counts: total_count_sum,
         })
     }
@@ -165,6 +168,29 @@ pub fn median(mut values: Vec<usize>) -> Result<f64, String> {
     }
 }
 
+/// Calculates the median if possible.
+///
+/// # Parameters
+///
+/// * `values` - the values to calculate the mean for
+pub fn median_f64(mut values: Vec<f64>) -> Result<f64, String> {
+    if values.is_empty() {
+        Err("Cannot compute median of an empty vector.".to_string())
+    } else {
+        values.retain(|value| value.is_finite());
+        values.sort_by(|a, b| {
+            a.partial_cmp(b)
+                .expect("Ordering floats must work as non-orderable values were removed first.")
+        });
+        let central_index = values.len() / 2;
+        if values.len() % 2 == 0 {
+            Ok((values[central_index] / 2.0) + (values[central_index - 1] / 2.0))
+        } else {
+            Ok(values[central_index])
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -205,6 +231,18 @@ mod tests {
         assert_ulps_eq!(median(vec![201, 1, 4, 5]).unwrap(), 4.5);
         assert_ulps_eq!(median(vec![0, 1, 2, 1, 3, 6, 5, 4, 3, 0]).unwrap(), 2.5);
         assert_ulps_eq!(median(vec![0, 0, 1, 1, 2, 3, 3, 4, 5, 6]).unwrap(), 2.5);
+        assert!(median(Vec::new()).is_err());
+    }
+
+    #[test]
+    fn test_median_f64() {
+        assert_ulps_eq!(median_f64(vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).unwrap(), 0.0);
+        assert_ulps_eq!(median_f64(vec![201.0]).unwrap(), 201.0);
+        assert_ulps_eq!(median_f64(vec![201.0, 1.0]).unwrap(), 101.0);
+        assert_ulps_eq!(median_f64(vec![201.0, 1.0, 4.0]).unwrap(), 4.0);
+        assert_ulps_eq!(median_f64(vec![201.0, 1.0, 4.0, 5.0]).unwrap(), 4.5);
+        assert_ulps_eq!(median_f64(vec![0.0, 1.0, 2.0, 1.0, 3.0, 6.0, 5.0, 4.0, 3.0, 0.0]).unwrap(), 2.5);
+        assert_ulps_eq!(median_f64(vec![0.0, 0.0, 1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 6.0]).unwrap(), 2.5);
         assert!(median(Vec::new()).is_err());
     }
 }

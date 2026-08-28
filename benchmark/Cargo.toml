@@ -8,7 +8,7 @@ bigtools = "0.5.8"
 clap = { version = "4.6.1", features = ["derive"] }
 csv = "1.4.0"
 getset = "0.1.7"
-noodles = { version = "0.112.0", features = ["bed"] }
+noodles = { version = "0.116.0", features = ["bed"] }
 serde = { version = "1.0.228", features = ["derive"] }
 
 [dev-dependencies]
