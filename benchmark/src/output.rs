@@ -4,7 +4,10 @@ use std::{io::BufWriter, path::Path};
 
 use serde::Serialize;
 
-use crate::input::{parse_count_file, parse_peak_file, peak_counts_for_region};
+use crate::{
+    data::PeakData,
+    input::{parse_count_file, parse_peak_file, peak_counts_for_region},
+};
 
 /// Computed output data.
 #[derive(Debug, Serialize)]
@@ -19,12 +22,20 @@ pub struct OutputData {
     median_peak_length: f64,
     #[serde(rename = "mean peak length")]
     mean_peak_length: f64,
-    #[serde(rename = "mean monotonicity deviation")]
-    mean_monotonicity_deviation: f64,
     #[serde(rename = "median monotonicity deviation")]
     median_monotonicity_deviation: f64,
+    #[serde(rename = "mean monotonicity deviation")]
+    mean_monotonicity_deviation: f64,
+    #[serde(rename = "standard deviation monotonicity deviation")]
+    sd_monotonicity_deviation: f64,
     #[serde(rename = "total counts")]
     total_counts: u64,
+    #[serde(rename = "unique counts")]
+    non_overlapping_counts: u64,
+    #[serde(rename = "total capture capacity")]
+    total_capture_capacity: f64,
+    #[serde(rename = "unique capture capacity")]
+    non_overlapping_capture_capacity: f64,
 }
 
 impl OutputData {
@@ -49,13 +60,20 @@ impl OutputData {
         let mean_peak_length = mean(&peak_lengths)?;
         let median_peak_length = median(peak_lengths)?;
 
+        let mut non_overlap_count_sum: u64 = 0;
+        let mut non_overlapping_peak_span = 0;
+        for peak_data in PeakData::non_overlapping(&peak_file) {
+            let peak_region_counts = peak_counts_for_region(&mut count_file, &peak_data)?;
+            non_overlap_count_sum += peak_region_counts.total_counts();
+            non_overlapping_peak_span += peak_data.end() - peak_data.start();
+        }
+
         let mut monotonicity_values = Vec::with_capacity(peak_file.len());
         let mut total_count_sum: u64 = 0;
         for peak_data in peak_file {
-            let a = peak_counts_for_region(&mut count_file, &peak_data)?;
-            // monotonicity_dev.push(a.monotonicity_deviation());
-            monotonicity_values.push(a.monotonicity_deviation());
-            total_count_sum += a.total_counts();
+            let peak_region_counts = peak_counts_for_region(&mut count_file, &peak_data)?;
+            monotonicity_values.push(peak_region_counts.monotonicity_deviation());
+            total_count_sum += peak_region_counts.total_counts();
         }
 
         Ok(Self {
@@ -65,8 +83,13 @@ impl OutputData {
             median_peak_length,
             mean_peak_length,
             mean_monotonicity_deviation: mean_f64(&monotonicity_values)?,
+            sd_monotonicity_deviation: sd_f64(&monotonicity_values)?,
             median_monotonicity_deviation: median_f64(monotonicity_values)?,
             total_counts: total_count_sum,
+            non_overlapping_counts: non_overlap_count_sum,
+            total_capture_capacity: (total_count_sum as f64)
+                / ((number_of_peaks as f64) * mean_peak_length),
+            non_overlapping_capture_capacity: (non_overlap_count_sum as f64) / (non_overlapping_peak_span as f64),
         })
     }
 
@@ -146,6 +169,23 @@ pub fn mean_f64(values: &[f64]) -> Result<f64, String> {
             mean += (*value as f64) / n_elements;
         }
         Ok(mean)
+    }
+}
+
+/// Calculates the standard deviation if possible.
+///
+/// # Parameters
+///
+/// * `values` - the values to calculate the mean for
+pub fn sd_f64(values: &[f64]) -> Result<f64, String> {
+    if values.is_empty() {
+        Err("Cannot compute standard deviation of an empty vector.".to_string())
+    } else {
+        let mean = mean_f64(values)?;
+        let squared_deviation: Vec<f64> =
+            values.iter().map(|value| (value - mean).powi(2)).collect();
+
+        Ok(mean_f64(&squared_deviation)?.sqrt())
     }
 }
 
@@ -241,8 +281,14 @@ mod tests {
         assert_ulps_eq!(median_f64(vec![201.0, 1.0]).unwrap(), 101.0);
         assert_ulps_eq!(median_f64(vec![201.0, 1.0, 4.0]).unwrap(), 4.0);
         assert_ulps_eq!(median_f64(vec![201.0, 1.0, 4.0, 5.0]).unwrap(), 4.5);
-        assert_ulps_eq!(median_f64(vec![0.0, 1.0, 2.0, 1.0, 3.0, 6.0, 5.0, 4.0, 3.0, 0.0]).unwrap(), 2.5);
-        assert_ulps_eq!(median_f64(vec![0.0, 0.0, 1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 6.0]).unwrap(), 2.5);
+        assert_ulps_eq!(
+            median_f64(vec![0.0, 1.0, 2.0, 1.0, 3.0, 6.0, 5.0, 4.0, 3.0, 0.0]).unwrap(),
+            2.5
+        );
+        assert_ulps_eq!(
+            median_f64(vec![0.0, 0.0, 1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 6.0]).unwrap(),
+            2.5
+        );
         assert!(median(Vec::new()).is_err());
     }
 }
