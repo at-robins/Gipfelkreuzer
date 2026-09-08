@@ -1,5 +1,5 @@
 [package]
-name = "benchmark"
+name = "gipfelkreuzer-benchmark"
 version = "0.1.0"
 edition = "2024"
 
@@ -9,7 +9,8 @@ clap = { version = "4.6.1", features = ["derive"] }
 csv = "1.4.0"
 getset = "0.1.7"
 noodles = { version = "0.116.0", features = ["bed"] }
-serde = { version = "1.0.228", features = ["derive"] }
+rayon = "1.12.0"
+serde = { version = "1.0.229", features = ["derive"] }
 
 [dev-dependencies]
 approx = "0.5.1"
